@@ -8,7 +8,7 @@ REQ_DIR = .
 
 FORCE:
 
-prod: all_tests github
+prod: all_tests
 
 github: FORCE
 	- git commit -a

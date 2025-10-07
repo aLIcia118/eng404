@@ -39,8 +39,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Install MongoDB in a Docker container.
-        uses: supercharge/mongodb-github-action@1.8.0
+      #- name: Install MongoDB in a Docker container.
+      #  uses: supercharge/mongodb-github-action@1.8.0
+      # Now should not need MongoDB installed 
+
 
       - name: Install Python packages.
         run: make dev_env

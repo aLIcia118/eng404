@@ -1,10 +1,14 @@
 include common.mk
 
 # Our directories
-API_DIR = server
+CITIES_DIR = cities
 DB_DIR = data
 SEC_DIR = security
 REQ_DIR = .
+SEC_DIR = security
+SERVER_DIR = server
+
+
 
 FORCE:
 
@@ -15,8 +19,9 @@ github: FORCE
 	git push origin master
 
 all_tests: FORCE
-	cd $(API_DIR); make tests
-	# cd $(DB_DIR); make tests
+	cd $(CITIES_DIR); make tests
+	cd $(SEC_DIR); make tests
+	cd $(SERVER_DIR); make tests
 
 dev_env: FORCE
 	pip install -r $(REQ_DIR)/requirements-dev.txt

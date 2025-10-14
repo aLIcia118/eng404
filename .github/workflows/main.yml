@@ -5,8 +5,9 @@ name: Demo CI/CD
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
+  #added aliciabranch as a branch for pushes
   push:
-    branches: [ master ]
+    branches: [ master, aliciabranch ]
   pull_request:
     branches: [ master ]
   # Allows you to run this workflow manually from the Actions tab

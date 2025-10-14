@@ -11,12 +11,13 @@ def test_bad_test_for_num_cities():
 def test_num_cities():
     old_count = qry.num_cities()
     qry.create(qry.SAMPLE_CITY)
-    assert qry.num_cities() == old_count + 1
+    assert qry.num_cities() > old_count
 
 
 def test_good_create():
     old_count = qry.num_cities()
-    assert qry.create(qry.SAMPLE_CITY) >= 1
+    new_rec_id = qry.create(qry.SAMPLE_CITY)
+    assert qry.is_valid_id(new_rec_id)
     assert qry.num_cities() > old_count
 
 

@@ -1,4 +1,4 @@
-#city level data
+#This file records city level data
 
 from random import randint
 

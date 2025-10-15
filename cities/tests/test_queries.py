@@ -31,9 +31,13 @@ def test_create_bad_param_type():
     with pytest.raises(ValueError):
         qry.create(17)
 
-@patch('cities.queries.db_connect', return_value=True)
+@patch('cities.queries.db_connect', return_value=True, autospec=True)
 def test_read(mocj_db_connect):
     cities = qry.read()
     assert isinstance(cities, dict)
     assert len(cities) > 1
 
+@patch('cities.queries.db_connect', return_value=False, autospec=True)
+def test_read(mock_db_connect):
+    with pytest.raises(ConnectionError):
+        cities = qry.read()

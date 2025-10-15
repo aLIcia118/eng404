@@ -1,4 +1,4 @@
-#city level data
+#This file records city level data
 MIN_ID_LEN = 1
 
 ID = 'id'

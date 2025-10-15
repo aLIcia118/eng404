@@ -10,15 +10,39 @@ from flask_cors import CORS
 
 # import werkzeug.exceptions as wz
 
+import cities.queries as cqry
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+
+ERROR = 'Error'
+MESSAGE = 'Message'
+NUM_RECS = 'Number of Records'
+READ = 'read'
 
 ENDPOINT_EP = '/endpoints'
 ENDPOINT_RESP = 'Available endpoints'
 HELLO_EP = '/hello'
 HELLO_RESP = 'hello'
 MESSAGE = 'Message'
+
+CITIES_EPS = '/cities'
+CITY_RESP = 'Cities'
+
+@api.route(f'{CITIES_EPS}/{READ}')
+class Cities(Resource):
+    def get(self):
+        try: 
+            cities = cqry.read()
+            num_recs = len(cities)
+        except ConnectionError as e:
+            return {ERROR: str(e)}
+        print(f'{cities=}')
+        return{
+            CITY_RESP: cities,
+            NUM_RECS: num_recs,
+        }
 
 
 @api.route(HELLO_EP)

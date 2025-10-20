@@ -36,8 +36,11 @@ class Cities(Resource):
         try: 
             cities = cqry.read()
             num_recs = len(cities)
+            # success → 200
+            return {CITY_RESP: cities, NUM_RECS: num_recs}, HTTPStatus.OK
         except ConnectionError as e:
-            return {ERROR: str(e)}
+            # backend unavailable → 503
+            return {ERROR: str(e)}, HTTPStatus.SERVICE_UNAVAILABLE
         print(f'{cities=}')
         return{
             CITY_RESP: cities,

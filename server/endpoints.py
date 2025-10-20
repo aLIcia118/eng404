@@ -2,7 +2,9 @@
 This is the file containing all of the endpoints for our flask app.
 The endpoint called `endpoints` will return all available endpoints.
 """
-# from http import HTTPStatus
+
+from http import HTTPStatus
+import logging
 
 from flask import Flask  # , request
 from flask_restx import Resource, Api  # , fields  # Namespace
@@ -15,6 +17,12 @@ import cities.queries as cqry
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+
+logging.basicConfig(
+    level=logging.INFO,  # set to DEBUG for more detailed output
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+log = logging.getLogger(__name__)
 
 ERROR = 'Error'
 MESSAGE = 'Message'
@@ -29,6 +37,7 @@ MESSAGE = 'Message'
 
 CITIES_EPS = '/cities'
 CITY_RESP = 'Cities'
+ENPOINT_RESP= 'Available endpoints'
 
 @api.route(f'{CITIES_EPS}/{READ}')
 class Cities(Resource):
@@ -36,9 +45,11 @@ class Cities(Resource):
         try: 
             cities = cqry.read()
             num_recs = len(cities)
+            log.info("Successfully fetched %d cities", num_recs)
             # success → 200
             return {CITY_RESP: cities, NUM_RECS: num_recs}, HTTPStatus.OK
         except ConnectionError as e:
+            log.warning("Connection error in /cities/read: %s", e)
             # backend unavailable → 503
             return {ERROR: str(e)}, HTTPStatus.SERVICE_UNAVAILABLE
         print(f'{cities=}')
@@ -58,7 +69,8 @@ class HelloWorld(Resource):
         """
         A trivial endpoint to see if the server is running.
         """
-        return {HELLO_RESP: 'world'}
+        log.debug("Received request on /hello")
+        return {HELLO_RESP: 'world'}, HTTPStatus.OK
 
 
 @api.route(ENDPOINT_EP)
@@ -72,4 +84,5 @@ class Endpoints(Resource):
         The `get()` method will return a sorted list of available endpoints.
         """
         endpoints = sorted(rule.rule for rule in api.app.url_map.iter_rules())
-        return {"Available endpoints": endpoints}
+        log.info("Listing %d endpoints", len(endpoints))
+        return {"Available endpoints": endpoints}, HTTPStatus.OK

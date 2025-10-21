@@ -28,3 +28,8 @@ def test_temp_city_fixture_creates_and_cleans(temp_city_record):
     # Delete inside the test to exercise the fixture teardown's ignore-path
     del qry.city_cache[new_id]
     assert new_id not in qry.city_cache
+
+def test_create_raises_on_bad_input():
+    # check input validation
+    with pytest.raises(ValueError):
+        qry.create("not-a-dict")

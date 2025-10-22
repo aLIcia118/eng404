@@ -3,14 +3,18 @@ import pytest
 
 import cities.queries as qry
 
-@oytest.fixture(scope='function')
+@pytest.fixture(scope='function')
 def temp_city():
     new_rec_id = qry.create(qry.SAMPLE_CITY)
     yield new_rec_id
+    try: 
+        qry.delete(new_rec_id)
+    except ValueError:
+        print("Recorde Deleted")
 
-@pytest.mark.skip('This is an example of a bad test!')
-def test_bad_test_for_num_cities():
-    assert qry.num_cities() == len(qry.city_cache)
+# @pytest.mark.skip('This is an example of a bad test!')
+# def test_bad_test_for_num_cities():
+#     assert qry.num_cities() == len(qry.city_cache)
 
 
 def test_num_cities():

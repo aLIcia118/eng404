@@ -51,3 +51,15 @@ def test_delete_with_fixture(temp_city_record): # test getting a key that doesn'
 
 def test_not_exist_without_fixture():
     assert qry.city_cache.get("non-existent-id") is None
+
+def test_record_field_types(temp_city_record): # check the type of each record data
+    new_id, record = temp_city_record
+    assert isinstance(new_id, str)
+    assert isinstance(record, dict)
+    assert isinstance(record[qry.NAME], str)
+    assert isinstance(record[qry.STATE_CODE], str)
+
+def test_cache_shape_after_insert(temp_city_record): # check whether the new record is stored as dict
+    new_id, _ = temp_city_record
+    assert new_id in qry.city_cache
+    assert isinstance(qry.city_cache[new_id], dict)

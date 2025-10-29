@@ -5,7 +5,7 @@ CITIES_DIR = cities
 DB_DIR = data
 SEC_DIR = security
 REQ_DIR = .
-SEC_DIR = security
+# SEC_DIR = security
 SERVER_DIR = server
 
 

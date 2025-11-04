@@ -4,6 +4,11 @@ import pytest
 import cities.queries as qry
 
 @pytest.fixture(scope='function')
+def clean_cache():
+    # Start each test with an empty cache
+    with patch.dict("cities.queries.city_cache", {}, clear=True):
+        yield
+    
 def temp_city():
     """
     Create a temporary city record for each test and ensure cleanup.

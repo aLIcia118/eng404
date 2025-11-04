@@ -4,6 +4,7 @@ We may be required to use a new database at any point.
 """
 import os
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
 
 import pymongo as pm
 
@@ -16,22 +17,49 @@ client = None
 
 MONGO_ID = '_id'
 
-def needs_db(fn, *args, **kwargs):
+def needs_db(fn):
     """
     A decorator to ensure that the DB is connected before
     running the decorated function.
     """
+    # @wraps(fn)
+    # def wrapper(*args, **kwargs):
+    #     global client
+    #     if client:
+
+    #         connect_db()
+    #     return fn(*args, **kwargs)
+    # return wrapper
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        global client
-        if client:
-
-            connect_db()
+        connect_db()
         return fn(*args, **kwargs)
     return wrapper
 
+def _build_client_from_env() -> pm.MongoClient:
+    """
+    Build a MongoClient using either:
+      - MONGODB_URI (Atlas SRV recommended), or
+      - local default mongodb://127.0.0.1:27017
+    """
+    uri = os.getenv("MONGODB_URI")
+    if uri:
+        print("Connecting to Mongo via MONGODB_URI (cloud).")
+        return pm.MongoClient(uri, serverSelectionTimeoutMS=5000)
+    if os.getenv("CLOUD_MONGO") == "1":
+        user = os.getenv("MONGO_USER")
+        pwd = os.getenv("MONGO_PASSWD")
+        host = os.getenv("MONGO_HOST")  
+        if not (user and pwd and host):
+            raise ValueError("CLOUD_MONGO=1 requires MONGO_USER, MONGO_PASSWD, and MONGO_HOST.")
+        uri = f"mongodb+srv://{user}:{pwd}@{host}/?retryWrites=true&w=majority"
+        print("Connecting to Mongo via CLOUD_MONGO pieces (cloud).")
+        return pm.MongoClient(uri, serverSelectionTimeoutMS=5000)
 
-def connect_db():
+    print("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
+    return pm.MongoClient(serverSelectionTimeoutMS=5000)
+
+def connect_db() -> pm.MongoClient:
     """
     This provides a uniform way to connect to the DB across all uses.
     Returns a mongo client object... maybe we shouldn't?
@@ -39,23 +67,34 @@ def connect_db():
     We should probably either return a client OR set a
     client global.
     """
+    # global client
+    # if client is None:  # not connected yet!
+    #     print('Setting client because it is None.')
+    #     if os.environ.get('CLOUD_MONGO', LOCAL) == CLOUD:
+    #         password = os.environ.get('MONGO_PASSWD')
+    #         if not password:
+    #             raise ValueError('You must set your password '
+    #                              + 'to use Mongo in the cloud.')
+    #         print('Connecting to Mongo in the cloud.')
+    #         client = pm.MongoClient(f'mongodb+srv://gcallah:{password}'
+    #                                 + '@koukoumongo1.yud9b.mongodb.net/'
+    #                                 + '?retryWrites=true&w=majority')
+    #     else:
+    #         print("Connecting to Mongo locally.")
+    #         client = pm.MongoClient()
+    # return client
     global client
-    if client is None:  # not connected yet!
-        print('Setting client because it is None.')
-        if os.environ.get('CLOUD_MONGO', LOCAL) == CLOUD:
-            password = os.environ.get('MONGO_PASSWD')
-            if not password:
-                raise ValueError('You must set your password '
-                                 + 'to use Mongo in the cloud.')
-            print('Connecting to Mongo in the cloud.')
-            client = pm.MongoClient(f'mongodb+srv://gcallah:{password}'
-                                    + '@koukoumongo1.yud9b.mongodb.net/'
-                                    + '?retryWrites=true&w=majority')
-        else:
-            print("Connecting to Mongo locally.")
-            client = pm.MongoClient()
+    if client is None:
+        client = _build_client_from_env()
+        # Validate connection early (raises on failure)
+        client.admin.command("ping")
     return client
 
+def close_db() -> None:
+    global client
+    if client is not None:
+        client.close()
+        client = None
 
 def convert_mongo_id(doc: dict):
     if MONGO_ID in doc:
@@ -76,9 +115,13 @@ def read_one(collection, filt, db=SE_DB):
     Find with a filter and return on the first doc found.
     Return None if not found.
     """
-    for doc in client[db][collection].find(filt):
+    # for doc in client[db][collection].find(filt):
+    #     convert_mongo_id(doc)
+    #     return doc
+    doc = client[db][collection].find_one(filt)
+    if doc:
         convert_mongo_id(doc)
-        return doc
+    return doc
 
 @needs_db 
 def delete(collection: str, filt: dict, db=SE_DB):

@@ -73,5 +73,5 @@ def test_read_cant_connect(mock_db_connect):
     When db_connect() fails, read() should surface a ConnectionError.
     """
     with pytest.raises(ConnectionError):
-        cities = qry.read()
+        qry.read()
         

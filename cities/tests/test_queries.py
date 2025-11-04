@@ -8,8 +8,9 @@ def clean_cache():
     # Start each test with an empty cache
     with patch.dict("cities.queries.city_cache", {}, clear=True):
         yield
-    
-def temp_city():
+
+@pytest.fixture(scope='function')
+def temp_city(clean_cache):
     """
     Create a temporary city record for each test and ensure cleanup.
     Returns the new record's id (as a string if create() was updated).
@@ -19,7 +20,7 @@ def temp_city():
     try: 
         qry.delete(new_rec_id)
     except ValueError:
-        print("Record Deleted")
+        print("Record Deleted") 
 
 def test_num_cities():
     """

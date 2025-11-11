@@ -4,7 +4,6 @@ We may be required to use a new database at any point.
 """
 import os
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
 
 import pymongo as pm
 
@@ -22,14 +21,6 @@ def needs_db(fn):
     A decorator to ensure that the DB is connected before
     running the decorated function.
     """
-    # @wraps(fn)
-    # def wrapper(*args, **kwargs):
-    #     global client
-    #     if client:
-
-    #         connect_db()
-    #     return fn(*args, **kwargs)
-    # return wrapper
     @wraps(fn)
     def wrapper(*args, **kwargs):
         connect_db()
@@ -144,21 +135,28 @@ def read(collection, db=SE_DB, no_id=True) -> list:
     ret = []
     for doc in client[db][collection].find():
         if no_id:
-            del doc[MONGO_ID]
+            doc.pop(MONGO_ID, None) # won't raise error if there's no id
         else:
             convert_mongo_id(doc)
         ret.append(doc)
     return ret
 
-
+@needs_db
 def read_dict(collection, key, db=SE_DB, no_id=True) -> dict:
+    """
+    Read all docs and re-key them by `key`.
+    Useful for lookups.
+    """
     recs = read(collection, db=db, no_id=no_id)
-    recs_as_dict = {}
+    recs_as_dict: dict[str, dict] = {}
     for rec in recs:
         recs_as_dict[rec[key]] = rec
     return recs_as_dict
 
+@needs_db
 def ensure_indexes():
-    connect_db()
+    """
+    Ensure required indexes exist.
+    """
     db = client[SE_DB]
     db["cities"].create_index("name", unique=False)

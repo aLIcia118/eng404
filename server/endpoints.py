@@ -10,6 +10,8 @@ from flask_cors import CORS
 
 from data.db_connect import connect_db
 
+from data.db_connect import ensure_indexes
+
 # import werkzeug.exceptions as wz
 
 import cities.queries as cqry
@@ -17,6 +19,7 @@ import cities.queries as cqry
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+ensure_indexes()
 
 ERROR = 'Error'
 MESSAGE = 'Message'

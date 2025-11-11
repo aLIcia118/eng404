@@ -8,6 +8,8 @@ from flask import Flask  # , request
 from flask_restx import Resource, Api  # , fields  # Namespace
 from flask_cors import CORS
 
+from data.db_connect import connect_db
+
 # import werkzeug.exceptions as wz
 
 import cities.queries as cqry
@@ -30,6 +32,7 @@ HELLO_RESP = 'hello'
 CITIES_EPS = '/cities'
 CITY_RESP = 'Cities'
 
+HEALTH_DB_EP = "/health/db"
 
 @api.route(f'{CITIES_EPS}/{READ}')
 class Cities(Resource):
@@ -65,6 +68,18 @@ class HelloWorld(Resource):
         """
         return {HELLO_RESP: 'world'}
 
+@api.route(HEALTH_DB_EP)
+class HealthDB(Resource):
+    """
+    Endpoint to verify MongoDB connectivity.
+    """
+    def get(self):
+        try:
+            client = connect_db()
+            client.admin.command("ping")
+            return {"ok": True, "message": "Mongo reachable"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}, 500
 
 @api.route(ENDPOINT_EP)
 class Endpoints(Resource):

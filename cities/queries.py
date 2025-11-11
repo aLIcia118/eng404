@@ -17,13 +17,6 @@ SAMPLE_CITY = {
 city_cache: dict[str, dict] = {}
 
 
-def db_connect(success_ratio: int) -> bool:
-    val = randint(1, success_ratio)
-    if val == 3:
-        return False
-    return True
-
-
 def is_valid_id(_id: str) -> bool:
     return isinstance(_id, str) and len(_id) >= MIN_ID_LEN
 
@@ -37,7 +30,6 @@ def num_cities() -> int:
 
 
 def create(flds: dict) -> str:
-    dbc.connect_db()
     if not isinstance(flds, dict):
         raise ValueError(f"Bad type for {type(flds)=}")
     if not flds.get(NAME):
@@ -78,6 +70,7 @@ def delete(*args):
         )
         if deleted < 1:
             raise ValueError(f"City not found: {name}, {state_code}")
+
         ids_to_del: list[str] = []
         for cid, rec in city_cache.items():
             if rec.get(NAME) == name and rec.get(STATE_CODE) == state_code:
@@ -90,8 +83,6 @@ def delete(*args):
 
 
 def read() -> dict[str, dict]:
-    if not db_connect(1):
-        raise ConnectionError("cannot connect")
     if city_cache:
         return city_cache
     try:

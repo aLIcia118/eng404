@@ -16,6 +16,12 @@ SAMPLE_CITY = {
 
 city_cache: dict[str, dict] = {}
 
+def db_connect(success_ratio: int) -> bool:
+    """Legacy / test hook: simulate whether DB is reachable."""
+    val = randint(1, success_ratio)
+    if val == 3:
+        return False
+    return True
 
 def is_valid_id(_id: str) -> bool:
     return isinstance(_id, str) and len(_id) >= MIN_ID_LEN
@@ -83,12 +89,11 @@ def delete(*args):
 
 
 def read() -> dict[str, dict]:
+    if not db_connect(1):
+        raise ConnectionError("cannot connect")
     if city_cache:
         return city_cache
-    try:
-        recs = dbc.read(CITY_COLLECTION)
-    except ConnectionError:
-        raise
+    recs = dbc.read(CITY_COLLECTION)
     for rec in recs:
         new_id = _next_id()
         city_cache[new_id] = rec

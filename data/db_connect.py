@@ -48,7 +48,7 @@ def _build_client_from_env() -> pm.MongoClient:
         return pm.MongoClient(uri, serverSelectionTimeoutMS=5000)
 
     print("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
-    return pm.MongoClient(serverSelectionTimeoutMS=5000)
+    return pm.MongoClient("mongodb://127.0.0.1:27017", serverSelectionTimeoutMS=5000)
 
 def connect_db() -> pm.MongoClient:
     """
@@ -80,6 +80,13 @@ def connect_db() -> pm.MongoClient:
         # Validate connection early (raises on failure)
         client.admin.command("ping")
     return client
+
+def ping() -> bool:
+    try:
+        connect_db()
+        return client.admin.command("ping").get("ok") == 1
+    except Exception:
+        return False
 
 def close_db() -> None:
     global client
@@ -160,3 +167,5 @@ def ensure_indexes():
     """
     db = client[SE_DB]
     db["cities"].create_index("name", unique=False)
+
+

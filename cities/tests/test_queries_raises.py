@@ -22,7 +22,6 @@ def test_delete_nonexistent_city_raises():
 def test_read_connection_error_raises(monkeypatch):
     """Test that qry.read() raises a ConnectionError when the database connection fails."""
     # Simulate a failed database connection
-    monkeypatch.setattr(qry, "db_connect", lambda _: False)
-
+    monkeypatch.setattr(qry, "_can_connect", lambda: False)
     with pytest.raises(ConnectionError):
         qry.read()

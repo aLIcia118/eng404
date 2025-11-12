@@ -55,7 +55,7 @@ def test_read(temp_city):
     assert cities[new_id][qry.NAME] == rec[qry.NAME]
 
 
-@patch("cities.queries.db_connect", return_value=False)
+@patch("cities.queries._can_connect", return_value=False)
 def test_read_cant_connect(mock_db):
     with pytest.raises(ConnectionError):
         qry.read()

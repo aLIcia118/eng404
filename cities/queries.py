@@ -2,6 +2,7 @@ from __future__ import annotations
 from copy import deepcopy
 from random import randint
 from data import db_connect as dbc
+from uuid import uuid4
 
 MIN_ID_LEN = 1
 CITY_COLLECTION = "cities"
@@ -16,23 +17,33 @@ SAMPLE_CITY = {
 
 city_cache: dict[str, dict] = {}
 
-def db_connect(success_ratio: int) -> bool:
-    """Legacy / test hook: simulate whether DB is reachable."""
-    val = randint(1, success_ratio)
-    if val == 3:
+# def db_connect(success_ratio: int) -> bool:
+#     """Legacy / test hook: simulate whether DB is reachable."""
+#     val = randint(1, success_ratio)
+#     if val == 3:
+#         return False
+#     return True
+
+def _can_connect() -> bool:
+    try:
+        if hasattr(dbc, "ping"):
+            return bool(dbc.ping())
+        _ = dbc.read(CITY_COLLECTION)  
+        return True
+    except Exception:
         return False
-    return True
 
 def is_valid_id(_id: str) -> bool:
     return isinstance(_id, str) and len(_id) >= MIN_ID_LEN
 
 
 def _next_id() -> str:
-    return str(len(city_cache) + 1)
+    return str(uuid4())
 
 
 def num_cities() -> int:
-    return len(city_cache)
+    # return len(city_cache)
+    return len(read())
 
 
 def create(flds: dict) -> str:
@@ -43,7 +54,9 @@ def create(flds: dict) -> str:
     if not flds.get(STATE_CODE):
         raise ValueError("Missing state code")
     new_id = _next_id()
-    city_cache[new_id] = deepcopy(flds)
+    rec = deepcopy(flds)
+    rec[ID] = new_id
+    city_cache[new_id] = rec
     try:
         dbc.create(CITY_COLLECTION, flds)
     except Exception:
@@ -89,21 +102,27 @@ def delete(*args):
 
 
 def read() -> dict[str, dict]:
-    if not db_connect(1):
+    if not _can_connect():
         raise ConnectionError("cannot connect")
     if city_cache:
         return city_cache
     recs = dbc.read(CITY_COLLECTION)
     for rec in recs:
-        new_id = _next_id()
-        city_cache[new_id] = rec
+        rec = dict(rec)
+        cid = rec.get(ID) or _next_id()
+        rec[ID] = cid
+        city_cache[cid] = rec
     return city_cache
 
 
 def read_one(city_id: str) -> dict | None:
-    return city_cache.get(city_id)
+    # return city_cache.get(city_id)
+    return dbc.read(CITY_COLLECTION)
 
 
 def main():
     cities = read()
     print(cities)
+
+if __name__ == "__main__":
+    main()

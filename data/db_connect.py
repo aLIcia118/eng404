@@ -160,12 +160,19 @@ def read_dict(collection, key, db=SE_DB, no_id=True) -> dict:
         recs_as_dict[rec[key]] = rec
     return recs_as_dict
 
-@needs_db
 def ensure_indexes():
     """
     Ensure required indexes exist.
+    This function will attempt to create indexes but will not raise exceptions
+    if MongoDB is not available, allowing the app to start even if DB is down.
     """
-    db = client[SE_DB]
-    db["cities"].create_index("name", unique=False)
+    try:
+        db_client = connect_db()
+        db = db_client[SE_DB]
+        db["cities"].create_index("name", unique=False)
+    except Exception as e:
+        # Don't raise - allow app to start even if MongoDB is not running
+        print(f"Warning: Could not ensure indexes (MongoDB may not be running): {e}")
+        print("Indexes will be created when MongoDB becomes available.")
 
 

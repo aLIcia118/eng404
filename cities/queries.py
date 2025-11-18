@@ -117,7 +117,15 @@ def read() -> dict[str, dict]:
 
 def read_one(city_id: str) -> dict | None:
     # return city_cache.get(city_id)
-    return dbc.read(CITY_COLLECTION)
+    #return dbc.read(CITY_COLLECTION)
+    """
+    Return a single city record by its internal ID, or None if not found.
+    """
+    if not is_valid_id(city_id):
+        raise ValueError(f"Invalid city id: {city_id!r}")
+
+    cities = read()  # ensures cache is populated (and DB reachable)
+    return cities.get(city_id)
 
 
 def main():

@@ -166,11 +166,6 @@ def ensure_indexes():
     Ensure required indexes exist.
     """
     db = client[SE_DB]
-    try:
-        db["cities"].create_index("name", unique=False)
-    except Exception as e:
-        # Index might already exist, which is fine
-        print(f"Note: Index creation for cities.name: {e}")
-
+    db["cities"].create_index("name", unique=False)
 
 

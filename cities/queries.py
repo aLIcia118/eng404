@@ -106,13 +106,14 @@ def read() -> dict[str, dict]:
         raise ConnectionError("cannot connect")
     if city_cache:
         return city_cache
-    recs = dbc.read(CITY_COLLECTION)
-    for rec in recs:
-        rec = dict(rec)
-        cid = rec.get(ID) or _next_id()
-        rec[ID] = cid
-        city_cache[cid] = rec
-    return city_cache
+    try:
+        recs = dbc.read(CITY_COLLECTION)
+        for rec in recs:
+            new_id = _next_id()
+            city_cache[new_id] = rec
+        return city_cache
+    except Exception as e:
+        raise ConnectionError(f"cannot connect to MongoDB: {e}")
 
 
 def read_one(city_id: str) -> dict | None:

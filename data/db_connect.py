@@ -16,19 +16,30 @@ client = None
 
 MONGO_ID = '_id'
 
-def needs_db(fn):
+MID_ID_LEN =4
+
+def is_valid_id(_id: str) -> bool:
+    if not isinstance(_id, str):
+        return False
+    if len(_id) < MIN_ID_LEN:
+        return False
+    return True
+
+def needs_db(fn, *args, **kwargs):
     """
     A decorator to ensure that the DB is connected before
     running the decorated function.
     """
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        connect_db()
+        global client
+        if not client:
+            connect_db()
         return fn(*args, **kwargs)
     return wrapper
 
 def _build_client_from_env() -> pm.MongoClient:
-    """
+    
     Build a MongoClient using either:
       - MONGODB_URI (Atlas SRV recommended), or
       - local default mongodb://127.0.0.1:27017
@@ -47,9 +58,8 @@ def _build_client_from_env() -> pm.MongoClient:
         print("Connecting to Mongo via CLOUD_MONGO pieces (cloud).")
         return pm.MongoClient(uri, serverSelectionTimeoutMS=5000)
 
-    uri = "mongodb://127.0.0.1:27017"
-    print("Connecting to Mongo locally at {uri}.")
-    return pm.MongoClient({uri}, serverSelectionTimeoutMS=5000)
+    print("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
+    return pm.MongoClient("mongodb://127.0.0.1:27017", serverSelectionTimeoutMS=5000)
 
 def connect_db() -> pm.MongoClient:
     """

@@ -39,6 +39,7 @@ def needs_db(fn, *args, **kwargs):
     return wrapper
 
 def _build_client_from_env() -> pm.MongoClient:
+    """
     
     Build a MongoClient using either:
       - MONGODB_URI (Atlas SRV recommended), or

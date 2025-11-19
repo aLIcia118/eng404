@@ -47,8 +47,9 @@ def _build_client_from_env() -> pm.MongoClient:
         print("Connecting to Mongo via CLOUD_MONGO pieces (cloud).")
         return pm.MongoClient(uri, serverSelectionTimeoutMS=5000)
 
-    print("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
-    return pm.MongoClient("mongodb://127.0.0.1:27017", serverSelectionTimeoutMS=5000)
+    uri = "mongodb://127.0.0.1:27017"
+    print("Connecting to Mongo locally at {uri}.")
+    return pm.MongoClient({uri}, serverSelectionTimeoutMS=5000)
 
 def connect_db() -> pm.MongoClient:
     """

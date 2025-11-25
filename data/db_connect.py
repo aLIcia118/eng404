@@ -16,7 +16,7 @@ client = None
 
 MONGO_ID = '_id'
 
-MID_ID_LEN =4
+MIN_ID_LEN =4
 
 def is_valid_id(_id: str) -> bool:
     if not isinstance(_id, str):

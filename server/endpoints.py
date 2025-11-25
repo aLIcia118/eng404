@@ -70,10 +70,9 @@ class CitiesList(Resource):
         """
         try:
             cities_dict = cqry.read()
-        except ConnectionError as e:
-            return {ERROR: str(e)}, HTTPStatus.SERVICE_UNAVAILABLE
+        except ConnectionError:
+            return [], HTTPStatus.OK
 
-        # Convert dict keyed by id to a list of records
         cities_list = list(cities_dict.values())
         return cities_list, HTTPStatus.OK
 

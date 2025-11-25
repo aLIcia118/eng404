@@ -178,26 +178,11 @@ def read() -> dict[str, dict[str, Any]]:
     Raises:
         ConnectionError: if the DB is not reachable.
     """
-    # if not _can_connect():
-    #     raise ConnectionError("cannot connect")
-
-    # if city_cache:
-    #     return city_cache
-
-    # recs = dbc.read(CITY_COLLECTION)
-    # for rec in recs:
-    #     rec = dict(rec)
-    #     cid = rec.get(ID) or _next_id()
-    #     rec[ID] = cid
-    #     city_cache[cid] = rec
-    # return city_cache
+    if not _can_connect():
+        raise ConnectionError("cannot connect")
 
     if city_cache:
         return city_cache
-
-    # Only try to connect if we actually need to load from Mongo
-    if not _can_connect():
-        raise ConnectionError("cannot connect")
 
     recs = dbc.read(CITY_COLLECTION)
     for rec in recs:
@@ -206,7 +191,6 @@ def read() -> dict[str, dict[str, Any]]:
         rec[ID] = cid
         city_cache[cid] = rec
     return city_cache
-
 
 def read_one(city_id: str) -> dict[str, Any] | None:
     """

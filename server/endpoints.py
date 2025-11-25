@@ -2,7 +2,7 @@
 This is the file containing all of the endpoints for our flask app.
 The endpoint called `endpoints` will return all available endpoints.
 """
-# from http import HTTPStatus
+from http import HTTPStatus
 
 from flask import Flask  # , request
 from flask_restx import Resource, Api  # , fields  # Namespace
@@ -58,6 +58,75 @@ class Cities(Resource):
             NUM_RECS: num_recs,
         }
 
+@api.route(CITIES_EPS)
+class CitiesList(Resource):
+    """
+    List all cities or create a new city.
+    """
+
+    def get(self):
+        """
+        Return a list of all cities.
+        """
+        try:
+            cities_dict = cqry.read()
+        except ConnectionError as e:
+            return {ERROR: str(e)}, HTTPStatus.SERVICE_UNAVAILABLE
+
+        # Convert dict keyed by id to a list of records
+        cities_list = list(cities_dict.values())
+        return cities_list, HTTPStatus.OK
+
+    def post(self):
+        """
+        Create a new city.
+        Expects JSON: { "name": "...", "state_code": "..." }
+        """
+        data = request.get_json() or {}
+        try:
+            new_id = cqry.create(data)
+            rec = cqry.read_one(new_id)
+        except ValueError as e:
+            return {ERROR: str(e)}, HTTPStatus.BAD_REQUEST
+
+        return rec, HTTPStatus.CREATED
+
+@api.route(f"{CITIES_EPS}/<string:city_id>")
+class CityDetail(Resource):
+    """
+    Get, update, or delete a single city by its internal ID.
+    """
+
+    def get(self, city_id: str):
+        rec = cqry.read_one(city_id)
+        if rec is None:
+            return {ERROR: f"City not found: {city_id}"}, HTTPStatus.NOT_FOUND
+        return rec, HTTPStatus.OK
+
+    def patch(self, city_id: str):
+        """
+        Partially update a city.
+        """
+        updates = request.get_json() or {}
+        try:
+            updated = cqry.update(city_id, updates)
+        except ValueError as e:
+            # invalid id or city not found
+            return {ERROR: str(e)}, HTTPStatus.BAD_REQUEST
+        return updated, HTTPStatus.OK
+
+    def delete(self, city_id: str):
+        """
+        Delete a city by id.
+        """
+        try:
+            ok = cqry.delete(city_id)
+        except ValueError as e:
+            return {ERROR: str(e)}, HTTPStatus.NOT_FOUND
+
+        if ok:
+            return {}, HTTPStatus.NO_CONTENT
+        return {ERROR: "Delete failed"}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 @api.route(HELLO_EP)
 class HelloWorld(Resource):

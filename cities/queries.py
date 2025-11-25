@@ -133,6 +133,43 @@ def delete(*args: str) -> bool:
     # Case 3: Invalid argument count — enforce correct usage
     raise TypeError("delete() takes 1 or 2 positional arguments")
 
+def update(city_id: str, updates: dict[str, Any]) -> dict[str, Any]:
+    """
+    Update fields for a city identified by its internal ID.
+
+    Returns:
+        The updated city record.
+
+    Raises:
+        ValueError: if the city_id is invalid or not found,
+                    or updates is not a dict.
+    """
+    if not is_valid_id(city_id):
+        raise ValueError(f"Invalid city id: {city_id!r}")
+    if not isinstance(updates, dict):
+        raise ValueError(f"Bad type for updates: {type(updates)!r}")
+
+    cities = read()  # ensure cache is loaded and DB reachable
+    rec = cities.get(city_id)
+    if rec is None:
+        raise ValueError(f"No such city: {city_id}")
+
+    # compute new record
+    new_rec = deepcopy(rec)
+    new_rec.update(updates)
+    city_cache[city_id] = new_rec
+
+    # best-effort update in DB
+    try:
+        dbc.update(
+            CITY_COLLECTION,
+            {NAME: rec.get(NAME), STATE_CODE: rec.get(STATE_CODE)},
+            updates,
+        )
+    except Exception:
+        pass
+
+    return new_rec
 
 def read() -> dict[str, dict[str, Any]]:
     """

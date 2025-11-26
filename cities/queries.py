@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any
+from typing import Any, Dict
 from uuid import uuid4
 
 from data import db_connect as dbc
@@ -74,10 +74,10 @@ def create(flds: dict[str, Any]) -> str:
     rec = deepcopy(flds)
     rec[ID] = new_id
     city_cache[new_id] = rec
-    
+
+    # Best-effort write to DB; failures are swallowed so cache still works.
     try:
-        # write the record including the generated id
-        dbc.create(CITY_COLLECTION, rec)
+        dbc.create(CITY_COLLECTION, flds)
     except Exception:
         pass
 
@@ -187,9 +187,6 @@ def read() -> dict[str, dict[str, Any]]:
     recs = dbc.read(CITY_COLLECTION)
     for rec in recs:
         rec = dict(rec)
-        # drop Mongo's internal _id so records are JSON-serializable
-        rec.pop("_id", None)
-
         cid = rec.get(ID) or _next_id()
         rec[ID] = cid
         city_cache[cid] = rec

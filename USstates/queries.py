@@ -1,31 +1,86 @@
-# USstates/queries.py
+from functools import wraps
 
-MIN_CODE_LEN = 2
-CODE = "code"
-NAME = "name"
+import data.db_connect as dbc
+from data.db_connect import is_valid_id  # noqa F401
 
-state_cache = {}
+STATE_COLLECTION = 'states'
 
+ID = 'id'
+NAME = 'name'
+CODE = 'code'
+COUNTRY_CODE = 'country_code'
+
+SAMPLE_CODE = 'NY'
+SAMPLE_COUNTRY = 'USA'
+SAMPLE_KEY = (SAMPLE_CODE, SAMPLE_COUNTRY)
 SAMPLE_STATE = {
-    CODE: "CA",
-    NAME: "California",
+    NAME: 'New York',
+    CODE: SAMPLE_CODE,
+    COUNTRY_CODE: SAMPLE_COUNTRY,
 }
 
-def is_valid_code(code: str) -> bool:
-    """Return True if code is a valid 2-letter abbreviation."""
-    return isinstance(code, str) and len(code) == 2 and code.isalpha()
+cache = None
 
-def num_states() -> int:
-    """Return the number of states currently stored."""
-    return len(state_cache)
 
+def needs_cache(fn, *args, **kwargs):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not cache:
+            load_cache()
+        return fn(*args, **kwargs)
+    return wrapper
+
+
+@needs_cache
+def count() -> int:
+    return len(cache)
+
+
+@needs_cache
 def create(flds: dict) -> str:
-    """Add a new state record and return its code."""
     if not isinstance(flds, dict):
-        raise ValueError(f"Expected dict, got {type(flds).__name__}")
-    if not flds.get(NAME) or not flds.get(CODE):
-        raise ValueError("State name and code are required")
-    if not is_valid_code(flds[CODE]):
-        raise ValueError(f"Invalid state code: {flds[CODE]}")
-    state_cache[flds[CODE]] = flds
-    return flds[CODE]
+        raise ValueError(f'Bad type for {type(flds)=}')
+    code = flds.get(CODE)
+    country_code = flds.get(COUNTRY_CODE)
+    if not flds.get(NAME):
+        raise ValueError(f'Bad value for {flds.get(NAME)=}')
+    if not code:
+        raise ValueError(f'Bad value for {code=}')
+    if not country_code:
+        raise ValueError(f'Bad value for {country_code=}')
+    if (code, country_code) in cache:
+        raise ValueError(f'Duplicate key: {code=}; {country_code=}')
+    new_id = dbc.create(STATE_COLLECTION, flds)
+    print(f'{new_id=}')
+    load_cache()
+    return new_id
+
+
+def delete(code: str, cntry_code: str) -> bool:
+    ret = dbc.delete(STATE_COLLECTION, {CODE: code, COUNTRY_CODE: cntry_code})
+    if ret < 1:
+        raise ValueError(f'State not found: {code}, {cntry_code}')
+    load_cache()
+    return ret
+
+
+@needs_cache
+def read() -> dict:
+    return cache
+
+
+def load_cache():
+    global cache
+    cache = {}
+    states = dbc.read(STATE_COLLECTION)
+    for state in states:
+        cache[(state[CODE], state[COUNTRY_CODE])] = state
+
+
+def main():
+    create(SAMPLE_STATE)
+    print(read())
+
+
+if __name__ == '__main__':
+    main()

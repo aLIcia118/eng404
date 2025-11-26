@@ -17,6 +17,7 @@ from data.db_connect import ensure_indexes
 # import werkzeug.exceptions as wz
 
 import cities.queries as cqry
+import USstates.queries as sqry
 
 app = Flask(__name__)
 CORS(app)
@@ -31,6 +32,9 @@ READ = 'read'
 ENDPOINT_EP = '/endpoints'
 ENDPOINT_RESP = 'Available endpoints'
 
+STATES_EPS = '/state'
+STATE_RESP = 'States'
+
 HELLO_EP = '/hello'
 HELLO_RESP = 'hello'
 
@@ -38,6 +42,28 @@ CITIES_EPS = '/cities'
 CITY_RESP = 'Cities'
 
 HEALTH_DB_EP = "/health/db"
+
+@api.route(f"{STATES_EPS}/{READ}")
+class States(Resource):
+    """
+    Endpoint to list all US states.
+    """
+    def get(self):
+        """
+        Return all states and a count of records.
+        """
+        try:
+            # Assuming sqry.read() returns a dict of states or a list
+            states_data = sqry.read()
+            # If it's a dict, get its length via len(states_data)
+            num_recs = len(states_data)
+        except ConnectionError as e:
+            return {ERROR: str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+        return {
+            STATE_RESP: states_data,
+            NUM_RECS: num_recs,
+        }, HTTPStatus.OK
 
 @api.route(f'{CITIES_EPS}/{READ}')
 class Cities(Resource):

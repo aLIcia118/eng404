@@ -187,6 +187,9 @@ def read() -> dict[str, dict[str, Any]]:
     recs = dbc.read(CITY_COLLECTION)
     for rec in recs:
         rec = dict(rec)
+        # drop Mongo's internal _id so records are JSON-serializable
+        rec.pop("_id", None)
+
         cid = rec.get(ID) or _next_id()
         rec[ID] = cid
         city_cache[cid] = rec

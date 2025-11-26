@@ -4,6 +4,7 @@ We may be required to use a new database at any point.
 """
 import os
 from functools import wraps
+from typing import Optional
 
 import pymongo as pm
 
@@ -12,7 +13,7 @@ CLOUD = "1"
 
 SE_DB = "seDB"
 
-client: pm.MongoClient | None = None
+client: Optional[pm.MongoClient] = None
 
 MONGO_ID = "_id"
 
@@ -92,8 +93,8 @@ def connect_db() -> pm.MongoClient:
 def ping() -> bool:
     """Return True if the DB connection is alive."""
     try:
-        connect_db()
-        return client.admin.command("ping").get("ok") == 1  # type: ignore[union-attr]
+        db_client = connect_db()
+        return db_client.admin.command("ping").get("ok") == 1
     except Exception:
         return False
 
@@ -153,7 +154,7 @@ def update(collection: str, filters: dict, update_dict: dict, db: str = SE_DB):
 
 
 @needs_db
-def read(collection: str, db: str = SE_DB, no_id: bool = True) -> list[dict]:
+def read(collection: str, db: str = SE_DB, no_id: bool = True) -> list:
     """
     Read all documents from a collection.
 
@@ -163,7 +164,7 @@ def read(collection: str, db: str = SE_DB, no_id: bool = True) -> list[dict]:
     Returns:
         A list of document dicts.
     """
-    result: list[dict] = []
+    result = []
     for doc in client[db][collection].find():  # type: ignore[index]
         if no_id:
             doc.pop(MONGO_ID, None)

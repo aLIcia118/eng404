@@ -17,3 +17,27 @@ The app connects to MongoDB using one of the following:
 - `MONGODB_URI` (recommended for Atlas)
 - or `CLOUD_MONGO=1` together with `MONGO_USER`, `MONGO_PASSWD`, `MONGO_HOST`
 - or, if nothing is set, it falls back to `mongodb://127.0.0.1:27017`
+
+## Connect to MongoDB in the Cloud
+Set MongoDB Atlas URI with your username and password. 
+E.g. run `export MONGODB_URI="mongodb+srv://rachel:Jinmuyan1412@rachel.dtxj3lp.mongodb.net/?appName=Rachel"`
+To check connection, run
+```
+python - << 'PY'                                                                                        
+import os
+from pymongo import MongoClient
+
+uri = os.environ["MONGODB_URI"]
+print("Using URI:", uri)
+
+client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+
+try:
+    result = client.admin.command("ping")
+    print("Ping result:", result)
+    print("Successfully connect")
+except Exception as e:
+    print("Cannot connect：", e)
+PY
+```
+Then you can run `make tests`.

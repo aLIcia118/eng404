@@ -41,3 +41,7 @@ except Exception as e:
 PY
 ```
 Then you can run `make tests`.
+
+## Run API Server in the Cloud
+Login to pythonanywhere using this account: username: rachelchen, password: Jinmuyan1412
+Before you run/change anything, please try GET cities/read or GET health/db, etc. to make sure it can connect to the database and mongoDB data correcctly.

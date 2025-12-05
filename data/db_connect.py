@@ -5,7 +5,7 @@ We may be required to use a new database at any point.
 import os
 from functools import wraps
 from typing import Optional
-import certifi
+import certifi # Use certifi’s CA bundle for TLS to MongoDB Atlas
 
 import pymongo as pm
 
@@ -62,7 +62,7 @@ def _build_client_from_env() -> pm.MongoClient:
         return pm.MongoClient(
             uri,
             serverSelectionTimeoutMS=5000,
-            tlsCAFile=certifi.where(),   # 👈 use certifi CA bundle
+            tlsCAFile=certifi.where(),   
         )
 
     if os.getenv("CLOUD_MONGO") == "1":
@@ -77,14 +77,17 @@ def _build_client_from_env() -> pm.MongoClient:
         return pm.MongoClient(
             uri,
             serverSelectionTimeoutMS=5000,
-            tlsCAFile=certifi.where(),   # 👈 here too
+            # Same TLS setup for this cloud connection path
+            tlsCAFile=certifi.where(),   
         )
 
     print("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
     return pm.MongoClient(
         "mongodb://127.0.0.1:27017",
         serverSelectionTimeoutMS=5000,
-        tlsCAFile=certifi.where(),   # 👈 fine for local too
+        # Using the same CA bundle is harmless for local dev and keeps
+        # behavior consistent across all connection modes.
+        tlsCAFile=certifi.where(),   
     )
 
 

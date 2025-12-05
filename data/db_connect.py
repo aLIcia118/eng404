@@ -5,6 +5,7 @@ We may be required to use a new database at any point.
 import os
 from functools import wraps
 from typing import Optional
+import certifi
 
 import pymongo as pm
 
@@ -58,7 +59,11 @@ def _build_client_from_env() -> pm.MongoClient:
     uri = os.getenv("MONGODB_URI")
     if uri:
         print("Connecting to Mongo via MONGODB_URI (cloud).")
-        return pm.MongoClient(uri, serverSelectionTimeoutMS=5000)
+        return pm.MongoClient(
+            uri,
+            serverSelectionTimeoutMS=5000,
+            tlsCAFile=certifi.where(),   # 👈 use certifi CA bundle
+        )
 
     if os.getenv("CLOUD_MONGO") == "1":
         user = os.getenv("MONGO_USER")
@@ -69,10 +74,18 @@ def _build_client_from_env() -> pm.MongoClient:
             raise ValueError(msg)
         uri = f"mongodb+srv://{user}:{pwd}@{host}/?retryWrites=true&w=majority"
         print("Connecting to Mongo via CLOUD_MONGO pieces (cloud).")
-        return pm.MongoClient(uri, serverSelectionTimeoutMS=5000)
+        return pm.MongoClient(
+            uri,
+            serverSelectionTimeoutMS=5000,
+            tlsCAFile=certifi.where(),   # 👈 here too
+        )
 
     print("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
-    return pm.MongoClient("mongodb://127.0.0.1:27017", serverSelectionTimeoutMS=5000)
+    return pm.MongoClient(
+        "mongodb://127.0.0.1:27017",
+        serverSelectionTimeoutMS=5000,
+        tlsCAFile=certifi.where(),   # 👈 fine for local too
+    )
 
 
 def connect_db() -> pm.MongoClient:

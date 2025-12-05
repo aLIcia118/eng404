@@ -4,6 +4,13 @@ import pytest
 
 import cities.queries as qry
 
+import os
+import pytest
+
+if os.getenv("CI") == "true":
+    pytest.skip("Skipping DB tests on CI", allow_module_level=True)
+
+
 # Helper function to make a new city record for testing.
 def _make_city(suffix: str) -> dict:
     c = deepcopy(qry.SAMPLE_CITY)

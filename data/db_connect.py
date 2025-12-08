@@ -87,7 +87,7 @@ def _build_client_from_env() -> pm.MongoClient:
         serverSelectionTimeoutMS=5000,
         # Using the same CA bundle is harmless for local dev and keeps
         # behavior consistent across all connection modes.
-        tlsCAFile=certifi.where(),   
+        
     )
 
 

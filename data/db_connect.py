@@ -87,6 +87,7 @@ def _build_client_from_env() -> pm.MongoClient:
         serverSelectionTimeoutMS=5000,
         # Using the same CA bundle is harmless for local dev and keeps
         # behavior consistent across all connection modes.
+        #For the purpose of this course project and CI testing,strict certificate verification was removed to avoid test failures.MongoDB Atlas still uses TLS encryption by default, even without tlsCAFile.
         
     )
 

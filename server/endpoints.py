@@ -7,7 +7,8 @@ The endpoint called `endpoints` will return all available endpoints.
 from http import HTTPStatus
 
 from flask import Flask, request
-from flask_restx import Resource, Api  # , fields  # Namespace
+# from flask_restx import Resource, Api  # , fields  # Namespace
+from flask_restx import Resource, Api, fields  # Namespace
 from flask_cors import CORS
 
 from data.db_connect import connect_db
@@ -23,6 +24,15 @@ app = Flask(__name__)
 CORS(app)
 api = Api(app)
 ensure_indexes()
+
+# Swagger / RESTX model describing the JSON body for a city
+city_model = api.model(
+    "City",
+    {
+        "name": fields.String(required=True, description="City name"),
+        "state_code": fields.String(required=True, description="2-letter state code"),
+    },
+)
 
 ERROR = 'Error'
 MESSAGE = 'Message'
@@ -109,7 +119,8 @@ class CitiesList(Resource):
         Create a new city.
         Expects JSON: { "name": "...", "state_code": "..." }
         """
-        data = request.get_json() or {}
+        # data = request.get_json() or {}
+        data = api.payload or {}
         try:
             new_id = cqry.create(data)
             rec = cqry.read_one(new_id)

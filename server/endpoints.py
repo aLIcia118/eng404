@@ -25,15 +25,6 @@ CORS(app)
 api = Api(app)
 ensure_indexes()
 
-# Swagger / RESTX model describing the JSON body for a city
-city_model = api.model(
-    "City",
-    {
-        "name": fields.String(required=True, description="City name"),
-        "state_code": fields.String(required=True, description="2-letter state code"),
-    },
-)
-
 ERROR = 'Error'
 MESSAGE = 'Message'
 NUM_RECS = 'Number of Records'
@@ -52,6 +43,15 @@ CITIES_EPS = '/cities'
 CITY_RESP = 'Cities'
 
 HEALTH_DB_EP = "/health/db"
+
+# Swagger / RESTX model describing the JSON body for a city
+city_model = api.model(
+    "City",
+    {
+        "name": fields.String(required=True, description="City name"),
+        "state_code": fields.String(required=True, description="2-letter state code"),
+    },
+)
 
 @api.route(f"{STATES_EPS}/{READ}")
 class States(Resource):
@@ -89,12 +89,12 @@ class Cities(Resource):
             cities = cqry.read()
             num_recs = len(cities)
         except ConnectionError as e:
-            return {ERROR: str(e)}
+            return {ERROR: str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
         
         return {
             CITY_RESP: cities,
             NUM_RECS: num_recs,
-        }
+        }, HTTPStatus.OK
 
 @api.route(CITIES_EPS)
 class CitiesList(Resource):
@@ -119,8 +119,8 @@ class CitiesList(Resource):
         Create a new city.
         Expects JSON: { "name": "...", "state_code": "..." }
         """
-        # data = request.get_json() or {}
-        data = api.payload or {}
+        data = request.get_json() or {}
+        # data = api.payload or {}
         try:
             new_id = cqry.create(data)
             rec = cqry.read_one(new_id)
@@ -176,7 +176,7 @@ class HelloWorld(Resource):
         """
         A trivial endpoint to see if the server is running.
         """
-        return {HELLO_RESP: 'world'}
+        return {HELLO_RESP: 'world'}, HTTPStatus.OK
 
 @api.route(HEALTH_DB_EP)
 class HealthDB(Resource):
@@ -189,7 +189,7 @@ class HealthDB(Resource):
             client.admin.command("ping")
             return {"ok": True, "message": "Mongo reachable"}
         except Exception as e:
-            return {"ok": False, "error": str(e)}, 500
+            return {"ok": False, "error": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 @api.route(ENDPOINT_EP)
 class Endpoints(Resource):
@@ -202,4 +202,5 @@ class Endpoints(Resource):
         The `get()` method will return a sorted list of available endpoints.
         """
         endpoints = sorted(rule.rule for rule in api.app.url_map.iter_rules())
-        return {"Available endpoints": endpoints}
+        # return {"Available endpoints": endpoints}
+        return {ENDPOINT_RESP: endpoints}, HTTPStatus.OK

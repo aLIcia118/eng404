@@ -102,7 +102,7 @@ class CitiesList(Resource):
     List all cities or create a new city.
     """
 
-        def get(self):
+    def get(self):
         """
         Return a list of all cities.
         """

@@ -53,6 +53,34 @@ city_model = api.model(
     },
 )
 
+@api.route(f"{STATES_EPS}/<string:state_code>")
+class StateDetail(Resource):
+    """
+    Get a single state by its postal code, e.g. /state/NY.
+    """
+    def get(self, state_code: str):
+        try:
+            states_data = sqry.read()
+        except ConnectionError as e:
+            return {ERROR: str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+        code = state_code.upper()
+        rec = None
+
+        if isinstance(states_data, dict):
+            rec = states_data.get(code)
+        else: we talk about
+            for s in states_data:
+                if str(s.get("code", "")).upper() == code:
+                    rec = s
+                    break
+
+        if rec is None:
+            return {ERROR: f"State not found: {code}"}, HTTPStatus.NOT_FOUND
+
+        return rec, HTTPStatus.OK
+
+
 @api.route(f"{STATES_EPS}/{READ}")
 class States(Resource):
     """

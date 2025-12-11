@@ -102,16 +102,32 @@ class CitiesList(Resource):
     List all cities or create a new city.
     """
 
-    def get(self):
+        def get(self):
         """
         Return a list of all cities.
         """
+        state_code = request.args.get("state_code")
+        limit_str = request.args.get("limit")
         try:
             cities_dict = cqry.read()
         except ConnectionError:
             return [], HTTPStatus.OK
 
         cities_list = list(cities_dict.values())
+        if state_code:
+            code_upper = state_code.upper()
+            cities_list = [
+                c for c in cities_list
+                if c.get("state_code", "").upper() == code_upper
+            ]
+        if limit_str:
+            try:
+                limit = int(limit_str)
+                if limit > 0:
+                    cities_list = cities_list[:limit]
+            except ValueError:
+                pass
+
         return cities_list, HTTPStatus.OK
 
     def post(self):

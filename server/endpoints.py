@@ -69,7 +69,7 @@ class StateDetail(Resource):
 
         if isinstance(states_data, dict):
             rec = states_data.get(code)
-        else: we talk about
+        else:
             for s in states_data:
                 if str(s.get("code", "")).upper() == code:
                     rec = s

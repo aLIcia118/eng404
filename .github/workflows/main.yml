@@ -50,6 +50,9 @@ jobs:
       - name: Run Python tests.
         run: make all_tests
         
+#   1) Add ENG404_PA_PWD as a repo secret on the canonical repo
+#   2) Uncomment this step to enable automatic deployment.
+
       # - name: Deploy to PythonAnywhere
       #   run: ./deploy.sh
       #   env:

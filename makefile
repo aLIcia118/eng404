@@ -8,9 +8,6 @@ REQ_DIR = .
 # SEC_DIR = security
 SERVER_DIR = server
 
-VENV = .venv
-PYTHON = python3
-PIP = $(VENV)/bin/pip
 
 
 FORCE:
@@ -27,15 +24,10 @@ all_tests: FORCE
 	cd $(SERVER_DIR); make tests
 
 dev_env: FORCE
-	$(PYTHON) -m venv $(VENV)
-# 	pip install -r $(REQ_DIR)/requirements-dev.txt
-	$(PIP) install -r $(REQ_DIR)/requirements-dev.txt
-# 	@echo "You should set PYTHONPATH to: "
-# 	@echo $(shell pwd)
-	@echo ""
-	@echo "Dev env ready."
-	@echo "Now run: source $(VENV)/bin/activate"
-	@echo ""
+	pip install -r $(REQ_DIR)/requirements-dev.txt
+	@echo "You should set PYTHONPATH to: "
+	@echo $(shell pwd)
+
 
 docs: FORCE
 	cd $(API_DIR); make docs

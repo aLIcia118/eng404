@@ -1,13 +1,15 @@
 # flask-api
 An example flask rest API server.
 
-To build production, type `make prod`.
+1.create the develpment environment, run `make dev_env`.
 
-To create the env for a new developer, run `make dev_env`.
+2.activate the virtual environment, run 'source .venv/bin/activate'.
 
 To run the project’s test suite, run `make all_tests`.
 
 To start the application locally to test it on your own machine, run `./local.sh`.
+
+after the server starts, you can test endpoints such as 'GET/cities/read, GET/health/db'.
 
 To run production-style checks and ready for deployment, run `make prod`.
 
@@ -21,6 +23,9 @@ The app connects to MongoDB using one of the following:
 ## Connect to MongoDB in the Cloud
 Set MongoDB Atlas URI with your username and password. 
 E.g. run `export MONGODB_URI="mongodb+srv://rachel:Jinmuyan1412@rachel.dtxj3lp.mongodb.net/?appName=Rachel"`
+
+If no environment variables are set, the application defaults to"mongodb://127.0.0.1:27017"
+
 To check connection, run
 ```
 python - << 'PY'                                                                                        

@@ -3,7 +3,7 @@ from copy import deepcopy
 from unittest.mock import patch
 import pytest
 
-import states.queries as qry
+import USstates.queries as qry
 
 
 def get_temp_rec():

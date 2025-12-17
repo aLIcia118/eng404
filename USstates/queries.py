@@ -48,9 +48,19 @@ def create(flds: dict) -> str:
         raise ValueError(f'Bad value for {code=}')
     if not country_code:
         raise ValueError(f'Bad value for {country_code=}')
+
     if (code, country_code) in cache:
         raise ValueError(f'Duplicate key: {code=}; {country_code=}')
-    new_id = dbc.create(STATE_COLLECTION, flds)
+
+    res = dbc.create(STATE_COLLECTION, flds)
+
+    # dbc.create may return InsertOneResult, ObjectId, or a string id.
+    if hasattr(res, "inserted_id"):
+        new_id = res.inserted_id
+    else:
+        new_id = res
+
+    new_id = str(new_id)
     print(f'{new_id=}')
     load_cache()
     return new_id
@@ -65,8 +75,15 @@ def delete(code: str, cntry_code: str) -> bool:
 
 
 @needs_cache
-def read() -> dict:
-    return cache
+def read() -> list[dict]:
+    out = []
+    for state in cache.values():
+        s = dict(state)
+        if "_id" in s:
+            s["_id"] = str(s["_id"])
+        out.append(s)
+    return out
+
 
 
 def load_cache():

@@ -90,8 +90,10 @@ def test_delete_not_there():
 def test_read(temp_state):
     states = qry.read()
     assert isinstance(states, list)
-    assert len(states) >= 1
     assert all(isinstance(s, dict) for s in states)
-    # Make sure sample record exists
-    assert any(s.get(qry.CODE) == qry.SAMPLE_CODE and s.get(qry.COUNTRY_CODE) == qry.SAMPLE_COUNTRY
-               for s in states)
+
+    temp_rec = get_temp_rec()
+    assert any(
+        s.get(qry.CODE) == temp_rec[qry.CODE] and s.get(qry.COUNTRY_CODE) == temp_rec[qry.COUNTRY_CODE]
+        for s in states
+    )

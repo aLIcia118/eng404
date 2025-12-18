@@ -27,7 +27,6 @@ echo "PythonAnywhere password is set"
 echo "Starting deployment..."
 
 sshpass -p "$ENG404_PA_PWD" ssh \
-    -o BatchMode=yes \
     -o StrictHostKeyChecking=no \
     "$PA_USER"@ssh.pythonanywhere.com << EOF
 cd ~/$PROJ_DIR

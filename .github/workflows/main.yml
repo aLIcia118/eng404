@@ -52,6 +52,9 @@ jobs:
         
   # 1) Add ENG404_PA_PWD as a repo secret on the canonical repo
   # 2) Uncomment this step to enable automatic deployment.
+  
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Deploy to PythonAnywhere
         run: ./deploy.sh

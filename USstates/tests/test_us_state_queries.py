@@ -6,21 +6,29 @@ import pytest
 import USstates.queries as qry
 
 
+# Use a temp code that should never exist in the real dataset.
+# Keep format consistent with state codes (2 letters).
+TEMP_CODE = "ZZ"
+
+
 def get_temp_rec():
-    return deepcopy(qry.SAMPLE_STATE)
+    rec = deepcopy(qry.SAMPLE_STATE)
+    rec[qry.CODE] = TEMP_CODE
+    # country_code stays the same as SAMPLE_STATE (likely "USA")
+    return rec
 
 
 @pytest.fixture(scope='function')
 def temp_state_no_del():
     temp_rec = get_temp_rec()
-    qry.create(get_temp_rec())
+    qry.create(temp_rec)
     return temp_rec
 
 
 @pytest.fixture(scope='function')
 def temp_state():
     temp_rec = get_temp_rec()
-    new_rec_id = qry.create(get_temp_rec())
+    new_rec_id = qry.create(temp_rec)
     yield new_rec_id
     try:
         qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
@@ -34,27 +42,28 @@ def test_bad_test_for_count():
 
 
 def test_count():
-    # get the count
     old_count = qry.count()
-    # add a record
-    qry.create(get_temp_rec())
+    temp_rec = get_temp_rec()
+    qry.create(temp_rec)
     assert qry.count() == old_count + 1
-    qry.delete(qry.SAMPLE_CODE, qry.SAMPLE_COUNTRY)
+    qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
 
 
 def test_good_create():
     old_count = qry.count()
-    new_rec_id = qry.create(get_temp_rec())
+    temp_rec = get_temp_rec()
+    new_rec_id = qry.create(temp_rec)
     assert qry.is_valid_id(new_rec_id)
     assert qry.count() == old_count + 1
-    qry.delete(qry.SAMPLE_CODE, qry.SAMPLE_COUNTRY)
+    qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
 
 
 def test_create_dup_key():
-    qry.create(get_temp_rec())
+    temp_rec = get_temp_rec()
+    qry.create(temp_rec)
     with pytest.raises(ValueError):
         qry.create(get_temp_rec())
-    qry.delete(qry.SAMPLE_CODE, qry.SAMPLE_COUNTRY)
+    qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
 
 
 def test_create_bad_name():
@@ -80,5 +89,9 @@ def test_delete_not_there():
 
 def test_read(temp_state):
     states = qry.read()
-    assert isinstance(states, dict)
-    assert qry.SAMPLE_KEY in states
+    assert isinstance(states, list)
+    assert len(states) >= 1
+    assert all(isinstance(s, dict) for s in states)
+    # Make sure sample record exists
+    assert any(s.get(qry.CODE) == qry.SAMPLE_CODE and s.get(qry.COUNTRY_CODE) == qry.SAMPLE_COUNTRY
+               for s in states)

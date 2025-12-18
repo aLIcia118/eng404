@@ -19,9 +19,18 @@ github: FORCE
 	git push origin master
 
 all_tests: FORCE
-	cd $(CITIES_DIR); make tests
-	cd $(SEC_DIR); make tests
-	cd $(SERVER_DIR); make tests
+	@echo "Running all tests from repo root..."
+	@PYTHONPATH=. PYTEST_DISABLE_PLUGIN_AUTOLOAD= \
+	python -m pytest -vv \
+		USstates/tests \
+		cities/tests \
+		data/tests \
+		examples/tests \
+		security/tests \
+		server/tests \
+		testing \
+		-p no:langsmith -p pytest_cov \
+		--tb=short -W ignore::FutureWarning
 
 dev_env: FORCE
 	pip install -r $(REQ_DIR)/requirements-dev.txt

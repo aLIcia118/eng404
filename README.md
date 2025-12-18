@@ -5,7 +5,9 @@ An example flask rest API server.
 
 2.activate the virtual environment, run 'source .venv/bin/activate'.
 
-To run the project’s test suite, run `make all_tests`.
+To run the full project test suite, run `make all_tests`.  
+To run tests for the current module during development, run `make tests`.
+They are running tests in all directories.
 
 To start the application locally to test it on your own machine, run `./local.sh`.
 

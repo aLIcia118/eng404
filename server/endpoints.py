@@ -111,7 +111,7 @@ class Cities(Resource):
     """
     def get(self):
         """
-        A trivial endpoint to see if the server is running.
+        Return all cities and a count of records.
         """
         try:
             cities = cqry.read()

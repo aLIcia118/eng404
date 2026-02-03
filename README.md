@@ -1,4 +1,6 @@
 # flask-api
+## The link to this semester's progressandgoal.md: https://github.com/eng404-org/eng404/blob/master/progressandgoal.md
+
 An example flask rest API server.
 
 1.create the develpment environment, run `make dev_env`.

@@ -1,0 +1,58 @@
+{
+  "states": [
+    {
+      "name": "New York",
+      "code": "NY",
+      "country_code": "USA"
+    },
+    {
+      "name": "California",
+      "code": "CA",
+      "country_code": "USA"
+    },
+    {
+      "name": "Texas",
+      "code": "TX",
+      "country_code": "USA"
+    },
+    {
+      "name": "Florida",
+      "code": "FL",
+      "country_code": "USA"
+    }
+  ],
+  "cities": [
+    {
+      "name": "New York City",
+      "state_code": "NY"
+    },
+    {
+      "name": "Buffalo",
+      "state_code": "NY"
+    },
+    {
+      "name": "Los Angeles",
+      "state_code": "CA"
+    },
+    {
+      "name": "San Francisco",
+      "state_code": "CA"
+    },
+    {
+      "name": "Houston",
+      "state_code": "TX"
+    },
+    {
+      "name": "Dallas",
+      "state_code": "TX"
+    },
+    {
+      "name": "Miami",
+      "state_code": "FL"
+    },
+    {
+      "name": "Tampa",
+      "state_code": "FL"
+    }
+  ]
+}

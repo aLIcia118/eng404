@@ -22,7 +22,11 @@ def get_temp_rec():
 def temp_state_no_del():
     temp_rec = get_temp_rec()
     qry.create(temp_rec)
-    return temp_rec
+    yield temp_rec
+    try:
+        qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
+    except ValueError:
+        pass
 
 
 @pytest.fixture(scope='function')
@@ -44,26 +48,41 @@ def test_bad_test_for_count():
 def test_count():
     old_count = qry.count()
     temp_rec = get_temp_rec()
-    qry.create(temp_rec)
-    assert qry.count() == old_count + 1
-    qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
+    try:
+        qry.create(temp_rec)
+        assert qry.count() == old_count + 1
+    finally:
+        try:
+            qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
+        except ValueError:
+            pass
 
 
 def test_good_create():
     old_count = qry.count()
     temp_rec = get_temp_rec()
-    new_rec_id = qry.create(temp_rec)
-    assert qry.is_valid_id(new_rec_id)
-    assert qry.count() == old_count + 1
-    qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
+    try:
+        new_rec_id = qry.create(temp_rec)
+        assert qry.is_valid_id(new_rec_id)
+        assert qry.count() == old_count + 1
+    finally:
+        try:
+            qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
+        except ValueError:
+            pass
 
 
 def test_create_dup_key():
     temp_rec = get_temp_rec()
-    qry.create(temp_rec)
-    with pytest.raises(ValueError):
-        qry.create(get_temp_rec())
-    qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
+    try:
+        qry.create(temp_rec)
+        with pytest.raises(ValueError):
+            qry.create(get_temp_rec())
+    finally:
+        try:
+            qry.delete(temp_rec[qry.CODE], temp_rec[qry.COUNTRY_CODE])
+        except ValueError:
+            pass
 
 
 def test_create_bad_name():

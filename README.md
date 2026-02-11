@@ -51,7 +51,5 @@ PY
 ```
 Then you can run `make tests`.
 
-## Run API Server in the Cloud
-1. Login to pythonanywhere using this account: username: rachelchen, password: Jinmuyan1412
-2. Before you run/change anything, please try GET cities/read or GET health/db, etc. to make sure it can connect to the database and mongoDB data correcctly.
-3. test
+To create the env for a new developer, run `make dev_env`.
+trigger

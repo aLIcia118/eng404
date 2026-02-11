@@ -179,6 +179,11 @@ class GeoDataLoader:
                 self.failed_states += 1
                 continue
 
+            # Check if already exists
+            if self.state_exists(state):
+                self.log(f"[SKIPPED] State #{idx} already exists: {state['code']}")
+                continue
+            
             try:
                 state_queries.create(state)
                 self.log(f"[✓] State #{idx}: {state['name']} ({state['code']})")
@@ -215,6 +220,11 @@ class GeoDataLoader:
                 self.failed_cities += 1
                 continue
 
+            # Check if already exists
+            if self.city_exists(city):
+                self.log(f"[SKIPPED] City #{idx} already exists: {city['name']}")
+                continue
+            
             try:
                 city_queries.create(city)
                 self.log(f"[✓] City #{idx}: {city['name']} ({city['state_code']})")

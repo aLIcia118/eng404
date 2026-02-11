@@ -3,6 +3,7 @@ from functools import wraps
 import data.db_connect as dbc
 
 STATE_COLLECTION = 'states'
+MIN_ID_LEN = 1
 
 ID = 'id'
 NAME = 'name'
@@ -28,6 +29,11 @@ def needs_cache(fn, *args, **kwargs):
             load_cache()
         return fn(*args, **kwargs)
     return wrapper
+
+
+def is_valid_id(_id: str) -> bool:
+    """Return True if `_id` looks like a valid state id."""
+    return isinstance(_id, str) and len(_id) >= MIN_ID_LEN
 
 
 @needs_cache

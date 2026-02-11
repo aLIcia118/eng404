@@ -4,8 +4,10 @@ export PYLINTFLAGS = --exclude=__main__.py
 
 export CLOUD_MONGO = 0
 
-PYTHONFILES = $(shell ls *.py)
 PYTESTFLAGS = -vv --verbose --cov-branch --cov-report term-missing --tb=short -W ignore::FutureWarning
+
+# Absolute path to the project root (directory containing this common.mk)
+PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 MAIL_METHOD = api
 
@@ -19,12 +21,12 @@ lint: $(patsubst %.py,%.pylint,$(PYTHONFILES))
 	$(LINTER) $(PYLINTFLAGS) $*.py
 
 pytests: FORCE
-	pytest $(PYTESTFLAGS) --cov=$(PKG)
+	PYTHONPATH=$(PROJECT_ROOT) PYTEST_DISABLE_PLUGIN_AUTOLOAD= pytest $(PYTESTFLAGS) --cov=$(PKG)
 
 # test a python file:
 %.py: FORCE
 	$(LINTER) $(PYLINTFLAGS) $@
-	pytest $(PYTESTFLAGS) tests/test_$*.py
+	PYTHONPATH=$(PROJECT_ROOT) PYTEST_DISABLE_PLUGIN_AUTOLOAD= pytest $(PYTESTFLAGS) tests/test_$*.py
 
 nocrud:
 	-rm *~

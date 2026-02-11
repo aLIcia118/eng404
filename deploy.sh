@@ -1,24 +1,36 @@
 #!/bin/bash
-# This shell script deploys a new version to a server.
+# This script deploys the ENG404 Flask app to PythonAnywhere.
+# Usage:
+#   export ENG404_PA_PWD=your_pythonanywhere_password
+#   ./deploy.sh
 
-PROJ_DIR=demo-repo4
-VENV=Fall2023
-PA_DOMAIN="Fall2023.pythonanywhere.com"
-PA_USER='Fall2023'
-echo "Project dir = $PROJ_DIR"
-echo "PA domain = $PA_DOMAIN"
-echo "Virtual env = $VENV"
+set -e
 
-if [ -z "$DEMO_PA_PWD" ]
-then
-    echo "The PythonAnywhere password var (DEMO_PA_PWD) must be set in the env."
+readonly PROJ_NAME=eng404
+readonly PROJ_DIR=$PROJ_NAME
+readonly VENV=$PROJ_NAME
+readonly PA_DOMAIN="rachelchen.pythonanywhere.com"
+readonly PA_USER="rachelchen"
+
+echo "Project directory : $PROJ_DIR"
+echo "PythonAnywhere user: $PA_USER"
+echo "PythonAnywhere site: $PA_DOMAIN"
+echo "Virtual environment: $VENV"
+
+# Check required environment variable
+if [ -z "$ENG404_PA_PWD" ]; then
+    echo "ERROR: ENG404_PA_PWD environment variable is not set." >&2
     exit 1
 fi
 
-echo "PA user = $PA_USER"
-echo "PA password = $DEMO_PA_PWD"
+echo "PythonAnywhere password is set"
+echo "Starting deployment..."
 
-echo "SSHing to PythonAnywhere."
-sshpass -p $DEMO_PA_PWD ssh -o "StrictHostKeyChecking no" $PA_USER@ssh.pythonanywhere.com << EOF
-    cd ~/$PROJ_DIR; PA_USER=$PA_USER PROJ_DIR=~/$PROJ_DIR VENV=$VENV PA_DOMAIN=$PA_DOMAIN ./rebuild.sh
+sshpass -p "$ENG404_PA_PWD" ssh \
+    -o StrictHostKeyChecking=no \
+    "$PA_USER"@ssh.pythonanywhere.com << EOF
+cd ~/$PROJ_DIR
+PA_USER=$PA_USER PROJ_DIR=~/$PROJ_DIR VENV=$VENV PA_DOMAIN=$PA_DOMAIN ./rebuild.sh
 EOF
+
+echo "Deployment completed successfully."

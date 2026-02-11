@@ -144,6 +144,15 @@ class GeoDataLoader:
         self.failed_cities: int = 0
         self.validator = GeoDataValidator()
 
+    def state_exists(self, state: Dict[str, Any]) -> bool:
+        return dbc.read_one("USstates", {"code": state["code"]}) is not None
+
+    def city_exists(self, city: Dict[str, Any]) -> bool:
+        return dbc.read_one(
+            "cities",
+            {"name": city["name"], "state_code": city["state_code"]}
+        ) is not None
+
     def log(self, message: str) -> None:
         """Print a message if verbose mode is enabled."""
         if self.verbose:

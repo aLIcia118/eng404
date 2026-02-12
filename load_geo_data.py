@@ -10,6 +10,7 @@ This script:
 
 import sys
 import json
+import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -17,6 +18,12 @@ from typing import List, Dict, Any, Optional
 from data import db_connect as dbc
 from USstates import queries as state_queries
 from cities import queries as city_queries
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s"
+)
 
 
 # Sample geographical data
@@ -153,10 +160,17 @@ class GeoDataLoader:
             {"name": city["name"], "state_code": city["state_code"]}
         ) is not None
 
-    def log(self, message: str) -> None:
-        """Print a message if verbose mode is enabled."""
-        if self.verbose:
-            print(message)
+    def log(self, message: str, level: str = "info") -> None:
+        """Log a message using logging instead of print."""
+        if not self.verbose:
+            return
+
+        if level == "error":
+            logging.error(message)
+        elif level == "warning":
+            logging.warning(message)
+        else:
+            logging.info(message)
 
     def load_states(self, states: List[Dict[str, Any]]) -> None:
         """
@@ -174,16 +188,16 @@ class GeoDataLoader:
             is_valid, error_msg = self.validator.validate_state(state)
 
             if not is_valid:
-                self.log(f"[FAILED] State #{idx}: {error_msg}")
-                self.log(f"  Data: {state}")
+                self.log(f"[FAILED] State #{idx}: {error_msg}", level="error")
+                self.log(f"  Data: {state}", level="error")
                 self.failed_states += 1
                 continue
 
             # Check if already exists
             if self.state_exists(state):
-                self.log(f"[SKIPPED] State #{idx} already exists: {state['code']}")
+                self.log(f"[SKIPPED] State #{idx} already exists: {state['code']}", level="warning")
                 continue
-            
+
             try:
                 state_queries.create(state)
                 self.log(f"[✓] State #{idx}: {state['name']} ({state['code']})")
@@ -191,12 +205,12 @@ class GeoDataLoader:
             except ValueError as e:
                 # Handle duplicate key errors and other validation errors
                 if "Duplicate key" in str(e):
-                    self.log(f"[SKIPPED] State #{idx} (already exists): {state['code']}")
+                    self.log(f"[SKIPPED] State #{idx} (already exists): {state['code']}", level="warning")
                 else:
-                    self.log(f"[FAILED] State #{idx}: {e}")
+                    self.log(f"[FAILED] State #{idx}: {e}", level="error")
                     self.failed_states += 1
             except Exception as e:
-                self.log(f"[ERROR] State #{idx} ({state.get('name')}): {e}")
+                self.log(f"[ERROR] State #{idx} ({state.get('name')}): {e}", level="error")
                 self.failed_states += 1
 
     def load_cities(self, cities: List[Dict[str, Any]]) -> None:
@@ -215,22 +229,22 @@ class GeoDataLoader:
             is_valid, error_msg = self.validator.validate_city(city)
 
             if not is_valid:
-                self.log(f"[FAILED] City #{idx}: {error_msg}")
-                self.log(f"  Data: {city}")
+                self.log(f"[FAILED] City #{idx}: {error_msg}", level="error")
+                self.log(f"  Data: {city}", level="error")
                 self.failed_cities += 1
                 continue
 
             # Check if already exists
             if self.city_exists(city):
-                self.log(f"[SKIPPED] City #{idx} already exists: {city['name']}")
+                self.log(f"[SKIPPED] City #{idx} already exists: {city['name']}", level="warning")
                 continue
-            
+
             try:
                 city_queries.create(city)
                 self.log(f"[✓] City #{idx}: {city['name']} ({city['state_code']})")
                 self.loaded_cities += 1
             except Exception as e:
-                self.log(f"[ERROR] City #{idx} ({city.get('name')}): {e}")
+                self.log(f"[ERROR] City #{idx} ({city.get('name')}): {e}", level="error")
                 self.failed_cities += 1
 
     def print_summary(self) -> None:
@@ -271,10 +285,10 @@ class GeoDataLoader:
                 self.load_cities(cities)
 
         except FileNotFoundError:
-            self.log(f"Error: File not found: {filepath}")
+            self.log(f"Error: File not found: {filepath}", level="error")
             sys.exit(1)
         except json.JSONDecodeError as e:
-            self.log(f"Error: Invalid JSON in {filepath}: {e}")
+            self.log(f"Error: Invalid JSON in {filepath}: {e}", level="error")
             sys.exit(1)
 
     def load_sample_data(self) -> None:
@@ -315,11 +329,11 @@ def main():
     # Check database connection
     try:
         if not dbc.ping():
-            print("Error: Cannot connect to MongoDB. Please ensure MongoDB is running.")
+            logging.error("Cannot connect to MongoDB. Please ensure MongoDB is running.")
             sys.exit(1)
-        print("✓ Connected to MongoDB")
+        logging.info("Connected to MongoDB")
     except Exception as e:
-        print(f"Error: Failed to connect to MongoDB: {e}")
+        logging.error(f"Failed to connect to MongoDB: {e}")
         sys.exit(1)
 
     # Create loader
@@ -342,10 +356,10 @@ def main():
             sys.exit(1)
 
     except KeyboardInterrupt:
-        print("\n\nLoading interrupted by user.")
+        logging.warning("Loading interrupted by user.")
         sys.exit(1)
     except Exception as e:
-        print(f"\nUnexpected error during loading: {e}")
+        logging.error(f"Unexpected error during loading: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -322,9 +322,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Default to sample data if no option specified
     if not args.json and not args.sample:
-        args.sample = True
+        logging.warning("No data source specified. Use --sample or --json.")
+        sys.exit(1)
 
     # Check database connection
     try:

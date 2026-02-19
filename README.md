@@ -3,9 +3,9 @@
 
 An example flask rest API server.
 
-1. Create the development environment, run `make dev_env`.
+1.create the develpment environment, run `make dev_env`.
 
-2. Activate the virtual environment, run `source .venv/bin/activate`.
+2.activate the virtual environment, run 'source .venv/bin/activate'.
 
 To run the full project test suite, run `make all_tests`.  
 To run tests for the current module during development, run `make tests`.
@@ -13,7 +13,7 @@ They are running tests in all directories.
 
 To start the application locally to test it on your own machine, run `./local.sh`.
 
-After the server starts, you can test endpoints such as `GET /cities/read`, `GET /health/db`.
+after the server starts, you can test endpoints such as 'GET/cities/read, GET/health/db'.
 
 To run production-style checks and ready for deployment, run `make prod`.
 
@@ -28,7 +28,7 @@ The app connects to MongoDB using one of the following:
 Set MongoDB Atlas URI with your username and password. 
 E.g. run `export MONGODB_URI="mongodb+srv://rachel:Jinmuyan1412@rachel.dtxj3lp.mongodb.net/?appName=Rachel"`
 
-If no environment variables are set, the application defaults to "mongodb://127.0.0.1:27017"
+If no environment variables are set, the application defaults to"mongodb://127.0.0.1:27017"
 
 To check connection, run
 ```
@@ -44,11 +44,12 @@ client = MongoClient(uri, serverSelectionTimeoutMS=5000)
 try:
     result = client.admin.command("ping")
     print("Ping result:", result)
-    print("Successfully connected")
+    print("Successfully connect")
 except Exception as e:
-    print("Cannot connect:", e)
+    print("Cannot connect：", e)
 PY
 ```
 Then you can run `make tests`.
 
 To create the env for a new developer, run `make dev_env`.
+trigger

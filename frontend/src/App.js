@@ -18,8 +18,8 @@ async function fetchJson(path) {
 
 function Card({ title, children }) {
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-      <h2 style={{ marginTop: 0 }}>{title}</h2>
+    <div className="card">
+      <h2 className="card-title">{title}</h2>
       {children}
     </div>
   );
@@ -27,7 +27,7 @@ function Card({ title, children }) {
 
 function JsonBox({ value }) {
   return (
-    <pre style={{ background: "#f7f7f7", padding: 12, borderRadius: 10, overflowX: "auto" }}>
+    <pre className="json">
       {JSON.stringify(value, null, 2)}
     </pre>
   );
@@ -83,22 +83,23 @@ export default function App() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "24px auto", padding: "0 16px", fontFamily: "system-ui" }}>
-      <h1 style={{ marginTop: 0 }}>ENG404 CRA Frontend</h1>
-      <p style={{ color: "#666" }}>
+    <div className="app-shell">
+      <div className="badge">ENG404 Frontend Preview</div>
+      <h1 className="app-title">ENG404 CRA Frontend</h1>
+      <p className="app-subtitle">
         This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}
         <code>/state/read</code>, <code>/cities</code>.
       </p>
 
       <Card title="1) GET /hello">
-        <button onClick={loadHello}>Load</button>
-        {helloErr && <p style={{ color: "crimson" }}>{helloErr}</p>}
+        <button className="btn" onClick={loadHello}>Load</button>
+        {helloErr && <p className="path" style={{ color: "crimson" }}>{helloErr}</p>}
         {hello && <JsonBox value={hello} />}
       </Card>
 
       <Card title="2) GET /state/read">
-        <button onClick={loadStates}>Load</button>
-        {statesErr && <p style={{ color: "crimson" }}>{statesErr}</p>}
+        <button className="btn" onClick={loadStates}>Load</button>
+        {statesErr && <p className="path" style={{ color: "crimson" }}>{statesErr}</p>}
         {statesResp && (
           <>
             <p>
@@ -119,29 +120,29 @@ export default function App() {
       </Card>
 
       <Card title="3) GET /cities (query params)">
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        <div className="controls">
           <label>
             state_code:&nbsp;
-            <input value={stateCode} onChange={(e) => setStateCode(e.target.value)} placeholder="NY" />
+            <input className="input" value={stateCode} onChange={(e) => setStateCode(e.target.value)} placeholder="NY" />
           </label>
           <label>
             limit:&nbsp;
-            <input value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="10" />
+            <input className="input" value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="10" />
           </label>
-          <button onClick={loadCities}>Load</button>
-          <span style={{ color: "#666" }}>
+          <button className="btn" onClick={loadCities}>Load</button>
+          <span className="path">
             Path: <code>{citiesPath}</code>
           </span>
         </div>
 
-        {citiesErr && <p style={{ color: "crimson" }}>{citiesErr}</p>}
+        {citiesErr && <p className="path" style={{ color: "crimson" }}>{citiesErr}</p>}
 
         {Array.isArray(cities) && (
           <>
             <p>
               Results: <b>{cities.length}</b>
             </p>
-            <ul>
+            <ul className="list">
               {cities.map((c, idx) => (
                 <li key={idx}>
                   <b>{c.name}</b> ({c.state_code})

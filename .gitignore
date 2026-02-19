@@ -136,3 +136,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Temporary workspace artifacts
+tmpclaude-*
+tmpclaude-*/
+tmpclaude-*/**
+server/tmpclaude-*
+server/tmpclaude-*/
+server/tmpclaude-*/**

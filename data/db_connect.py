@@ -3,9 +3,11 @@ All interaction with MongoDB should be through this file!
 We may be required to use a new database at any point.
 """
 import os
+from copy import deepcopy
 from functools import wraps
 from typing import Optional
-import certifi # Use certifi’s CA bundle for TLS to MongoDB Atlas
+from uuid import uuid4
+import certifi # Use certifi's CA bundle for TLS to MongoDB Atlas
 
 import pymongo as pm
 
@@ -15,6 +17,8 @@ CLOUD = "1"
 SE_DB = "seDB"
 
 client: Optional[pm.MongoClient] = None
+_use_inmem = False
+_inmem_db: dict[str, dict[str, list[dict]]] = {}
 
 MONGO_ID = "_id"
 
@@ -92,25 +96,37 @@ def _build_client_from_env() -> pm.MongoClient:
     )
 
 
-def connect_db() -> pm.MongoClient:
+def connect_db() -> Optional[pm.MongoClient]:
     """
     Uniform way to connect to the DB across all uses.
 
     Returns:
-        A MongoClient instance, and sets the module-level `client` as well.
+        A MongoClient instance, or None when falling back to in-memory mode.
     """
-    global client
-    if client is None:
+    global client, _use_inmem
+    if client is not None:
+        return client
+
+    try:
         client = _build_client_from_env()
         # Validate connection early (raises on failure)
         client.admin.command("ping")
-    return client
+        _use_inmem = False
+        return client
+    except Exception:
+        _use_inmem = True
+        client = None
+        return None
 
 
 def ping() -> bool:
     """Return True if the DB connection is alive."""
+    if _use_inmem:
+        return True
     try:
         db_client = connect_db()
+        if db_client is None:
+            return False
         return db_client.admin.command("ping").get("ok") == 1
     except Exception:
         return False
@@ -118,10 +134,21 @@ def ping() -> bool:
 
 def close_db() -> None:
     """Close the global client, if present."""
-    global client
+    global client, _inmem_db, _use_inmem
     if client is not None:
         client.close()
         client = None
+    _inmem_db = {}
+    _use_inmem = False
+
+
+def _inmem_collection(db: str, collection: str) -> list[dict]:
+    db_store = _inmem_db.setdefault(db, {})
+    return db_store.setdefault(collection, [])
+
+
+def _match(doc: dict, filt: dict) -> bool:
+    return all(doc.get(key) == value for key, value in filt.items())
 
 
 def convert_mongo_id(doc: dict) -> None:
@@ -136,6 +163,11 @@ def create(collection: str, doc: dict, db: str = SE_DB):
     Insert a single doc into a collection.
     """
     print(f"{doc=}")
+    if _use_inmem or client is None:
+        rec = deepcopy(doc)
+        rec.setdefault(MONGO_ID, str(uuid4()))
+        _inmem_collection(db, collection).append(rec)
+        return rec[MONGO_ID]
     return client[db][collection].insert_one(doc)  # type: ignore[index]
 
 
@@ -145,6 +177,13 @@ def read_one(collection: str, filt: dict, db: str = SE_DB):
     Find with a filter and return only the first doc found.
     Return None if not found.
     """
+    if _use_inmem or client is None:
+        for rec in _inmem_collection(db, collection):
+            if _match(rec, filt):
+                result = deepcopy(rec)
+                convert_mongo_id(result)
+                return result
+        return None
     result = client[db][collection].find_one(filt)  # type: ignore[index]
     if result:
         convert_mongo_id(result)
@@ -160,6 +199,13 @@ def delete(collection: str, filt: dict, db: str = SE_DB) -> int:
         The number of documents deleted (0 or 1).
     """
     print(f"{filt=}")
+    if _use_inmem or client is None:
+        coll = _inmem_collection(db, collection)
+        for idx, rec in enumerate(coll):
+            if _match(rec, filt):
+                del coll[idx]
+                return 1
+        return 0
     del_result = client[db][collection].delete_one(filt)  # type: ignore[index]
     return del_result.deleted_count
 
@@ -167,6 +213,12 @@ def delete(collection: str, filt: dict, db: str = SE_DB) -> int:
 @needs_db
 def update(collection: str, filters: dict, update_dict: dict, db: str = SE_DB):
     """Update a single document matching `filters` with `update_dict`."""
+    if _use_inmem or client is None:
+        for rec in _inmem_collection(db, collection):
+            if _match(rec, filters):
+                rec.update(update_dict)
+                return 1
+        return 0
     return client[db][collection].update_one(filters, {"$set": update_dict})  # type: ignore[index]
 
 
@@ -182,6 +234,15 @@ def read(collection: str, db: str = SE_DB, no_id: bool = True) -> list:
         A list of document dicts.
     """
     result = []
+    if _use_inmem or client is None:
+        for rec in _inmem_collection(db, collection):
+            doc = deepcopy(rec)
+            if no_id:
+                doc.pop(MONGO_ID, None)
+            else:
+                convert_mongo_id(doc)
+            result.append(doc)
+        return result
     for doc in client[db][collection].find():  # type: ignore[index]
         if no_id:
             doc.pop(MONGO_ID, None)
@@ -214,6 +275,8 @@ def ensure_indexes() -> None:
     """
     try:
         db_client = connect_db()
+        if db_client is None:
+            return
         db = db_client[SE_DB]
         db["cities"].create_index("name", unique=False)
     except Exception as exc:

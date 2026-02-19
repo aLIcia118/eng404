@@ -84,7 +84,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="badge">ENG404 Frontend Preview</div>
+      <div className="badge">ENG404 Frontend Demo</div>
       <h1 className="app-title">ENG404 CRA Frontend</h1>
       <p className="app-subtitle">
         This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}

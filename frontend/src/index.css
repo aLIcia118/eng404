@@ -2,15 +2,17 @@
 
 body {
   margin: 0;
-  font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, 
+  font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: radial-gradient(circle at top, #fff6e8, #f6f4f0 60%, #edf2f7 100%);
   color: #0f172a;
+  min-height: 100vh;
+  scroll-behavior: smooth;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }

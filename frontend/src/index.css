@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
@@ -15,4 +19,7 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+  padding: 0.1rem 0.3rem;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.06);
 }

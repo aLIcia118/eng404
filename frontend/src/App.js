@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "./App.css";
 
 async function fetchJson(path) {
@@ -51,6 +51,8 @@ export default function App() {
   const [loadingHello, setLoadingHello] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+
+  const [globalError, setGlobalError] = useState(null);
 
   const citiesPath = useMemo(() => {
     const params = new URLSearchParams();

@@ -57,11 +57,15 @@ export default function App() {
   const citiesPath = useMemo(() => {
     const params = new URLSearchParams();
     if (stateCode.trim()) params.set("state_code", stateCode.trim());
-    if (limit.trim()) params.set("limit", limit.trim());
+    const n = Number(limit);
+    if (Number.isFinite(n) && n > 0) {
+      params.set("limit", String(n));
+    }
     return `/cities?${params.toString()}`;
   }, [stateCode, limit]);
 
   const loadHello = async () => {
+    setGlobalError(null);
     setLoadingHello(true);
     setHelloErr(null);
     try {
@@ -75,6 +79,7 @@ export default function App() {
   };
 
   const loadStates = async () => {
+    setGlobalError(null);
     setLoadingStates(true);
     setStatesErr(null);
     try {
@@ -88,6 +93,7 @@ export default function App() {
   };
 
   const loadCities = async () => {
+    setGlobalError(null);
     setLoadingCities(true);
     setCitiesErr(null);
     try {
@@ -103,6 +109,10 @@ export default function App() {
   useEffect(() => {
     loadHello();
   }, []);
+
+  const citiesArray = Array.isArray(cities)
+  ? cities
+  : cities?.cities;
 
   return (
     <div className="app-shell">
@@ -158,7 +168,14 @@ export default function App() {
           </label>
           <label>
             limit:&nbsp;
-            <input className="input" value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="10" />
+            <input
+              className="input"
+              type="number"
+              min="1"
+              max="200"
+              value={limit}
+              onChange={(e) => setLimit(e.target.value)}
+            />
           </label>
           <button className="btn" onClick={loadCities} disabled={loadingCities}>
             {loadingCities ? "Loading..." : "Load"}
@@ -171,13 +188,13 @@ export default function App() {
 
         {citiesErr && <p className="path" style={{ color: "crimson" }}>{citiesErr}</p>}
 
-        {Array.isArray(cities) && (
+        {Array.isArray(citiesArray) && (
           <>
             <p>
               Results: <b>{cities.length}</b>
             </p>
             <ul className="list">
-              {cities.map((c, idx) => (
+              {citiesArray.map((c, idx) => (
                 <li key={idx}>
                   <b>{c.name}</b> ({c.state_code})
                 </li>

@@ -68,6 +68,7 @@ export default function App() {
       setHello(await fetchJson("/hello"));
     } catch (e) {
       setHelloErr(e.message);
+      setGlobalError("Error when fetching data.");
     } finally {
     setLoadingHello(false);
     }
@@ -80,6 +81,7 @@ export default function App() {
       setStatesResp(await fetchJson("/state/read"));
     } catch (e) {
       setStatesErr(e.message);
+      setGlobalError("Error while fetching data.");
     } finally {
     setLoadingStates(false);
     }
@@ -92,13 +94,23 @@ export default function App() {
       setCities(await fetchJson(citiesPath));
     } catch (e) {
       setCitiesErr(e.message);
+      setGlobalError("Error while fetching data.");
     } finally {
     setLoadingCities(false);
     }
   };
 
+  useEffect(() => {
+    loadHello();
+  }, []);
+
   return (
     <div className="app-shell">
+      {globalError && (
+        <div className="error-banner">
+          {globalError}
+        </div>
+      )}
       <div className="badge">ENG404 Frontend Demo</div>
       <h1 className="app-title">ENG404 CRA Frontend</h1>
       <p className="app-subtitle">

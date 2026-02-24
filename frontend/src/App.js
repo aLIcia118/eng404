@@ -61,8 +61,31 @@ export default function App() {
     if (Number.isFinite(n) && n > 0) {
       params.set("limit", String(n));
     }
+
+    
     return `/cities?${params.toString()}`;
   }, [stateCode, limit]);
+
+  // --- Derived data for UI ---
+  const statesArray = useMemo(() => {
+    const raw = statesResp?.["States"];
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    return Object.values(raw);
+  }, [statesResp]);
+
+  const statesPreview = useMemo(() => statesArray.slice(0, 24), [statesArray]);
+
+  // const citiesArray = useMemo(() => {
+  //   if (!cities) return [];
+  //   if (Array.isArray(cities)) return cities;
+  //   return cities.cities ?? cities.results ?? [];
+  // }, [cities]);
+
+  const recordCount =
+    statesResp?.["Number of Records"] ??
+    statesResp?.["Number of records"] ??
+    statesArray.length;
 
   const loadHello = async () => {
     setGlobalError(null);
@@ -110,10 +133,12 @@ export default function App() {
     loadHello();
   }, []);
 
-  const citiesArray = Array.isArray(cities)
+  const safeCities = Array.isArray(cities)
   ? cities
-  : cities?.cities;
+  : (cities?.cities ?? cities?.results ?? []);
 
+  const citiesCount = safeCities.length;
+ 
   return (
     <div className="app-shell">
       {globalError && (
@@ -122,7 +147,7 @@ export default function App() {
         </div>
       )}
       <div className="badge">ENG404 Frontend Demo</div>
-      <h1 className="app-title">ENG404 CRA Frontend</h1>
+      {/* <h1 className="app-title">ENG404 CRA Frontend</h1> */}
       <p className="app-subtitle">
         This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}
         <code>/state/read</code>, <code>/cities</code>.
@@ -144,18 +169,21 @@ export default function App() {
         {statesResp && (
           <>
             <p>
-              Records: <b>{statesResp["Number of Records"]}</b>
+              Records: <b>{recordCount}</b>
             </p>
 
-            {/* 只预览一部分，避免太长 */}
-            <JsonBox
-              value={{
-                "States Preview":
-                  Array.isArray(statesResp["States"])
-                    ? statesResp["States"].slice(0, 10)
-                    : Object.fromEntries(Object.entries(statesResp["States"] || {}).slice(0, 10)),
-              }}
-            />
+            {statesArray.length === 0 ? (
+              <p className="empty">No states found. (Have you loaded data into MongoDB?)</p>
+            ) : (
+              <div className="grid">
+                {statesPreview.map((s, idx) => (
+                  <div className="tile" key={s.code ?? s._id ?? idx}>
+                    <div className="tile-title">{s.name ?? "Unknown State"}</div>
+                    <div className="tile-meta">{s.code ?? ""}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </Card>
@@ -188,15 +216,20 @@ export default function App() {
 
         {citiesErr && <p className="path" style={{ color: "crimson" }}>{citiesErr}</p>}
 
-        {Array.isArray(citiesArray) && (
+        {cities && !citiesErr && safeCities.length === 0 && (
+          <p className="empty">No cities found for that query.</p>
+        )}
+
+        {safeCities.length > 0 && (
           <>
             <p>
-              Results: <b>{cities.length}</b>
+              Results: <b>{citiesCount}</b>
             </p>
             <ul className="list">
-              {citiesArray.map((c, idx) => (
-                <li key={idx}>
-                  <b>{c.name}</b> ({c.state_code})
+              {safeCities.map((c, idx) => (
+                <li className="listItem" key={c._id ?? `${c.name}-${idx}`}>
+                  <span className="cityName">{c.name ?? "Unknown City"}</span>
+                  <span className="pill">{c.state_code ?? stateCode.toUpperCase()}</span>
                 </li>
               ))}
             </ul>

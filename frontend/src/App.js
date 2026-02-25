@@ -48,9 +48,14 @@ export default function App() {
   const [cities, setCities] = useState(null);
   const [citiesErr, setCitiesErr] = useState(null);
 
+  // Endpoint 4: /health/db (MongoDB status)
+  const [healthStatus, setHealthStatus] = useState(null);
+  const [healthErr, setHealthErr] = useState(null);
+
   const [loadingHello, setLoadingHello] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingHealth, setLoadingHealth] = useState(false);
 
   const [globalError, setGlobalError] = useState(null);
 
@@ -114,8 +119,23 @@ export default function App() {
     }
   };
 
+  const loadHealth = async () => {
+    setGlobalError(null);
+    setLoadingHealth(true);
+    setHealthErr(null);
+    try {
+      setHealthStatus(await fetchJson("/health/db"));
+    } catch (e) {
+      setHealthErr(e.message);
+      setGlobalError("Error while fetching health status.");
+    } finally {
+    setLoadingHealth(false);
+    }
+  };
+
   useEffect(() => {
     loadHello();
+    loadHealth();
   }, []);
 
   
@@ -178,6 +198,26 @@ export default function App() {
         This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}
         <code>/state/read</code>, <code>/cities</code>.
       </p>
+
+      <Card title="System Health">
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <span style={{
+            display: "inline-block",
+            width: "12px",
+            height: "12px",
+            borderRadius: "50%",
+            backgroundColor: healthStatus?.ok ? "#22c55e" : "#ef4444"
+          }}></span>
+          <span style={{ fontWeight: "600" }}>
+            {healthStatus?.ok ? "MongoDB Connected" : "MongoDB Disconnected"}
+          </span>
+          <button className="btn" onClick={loadHealth} disabled={loadingHealth} style={{ marginLeft: "auto", padding: "4px 8px", fontSize: "0.85rem" }}>
+            {loadingHealth ? "Checking..." : "Refresh"}
+          </button>
+        </div>
+        {healthErr && <p className="path" style={{ color: "crimson", marginTop: "8px" }}>{healthErr}</p>}
+        {healthStatus && <p className="path" style={{ marginTop: "8px" }}>{healthStatus.message}</p>}
+      </Card>
 
       <Card title="1) GET /hello">
         <button className="btn" onClick={loadHello} disabled={loadingHello}>

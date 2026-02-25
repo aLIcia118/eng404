@@ -159,6 +159,15 @@ export default function App() {
     loadEndpoints();
   }, []);
 
+  const refreshAll = async () => {
+    setGlobalError(null);
+    await Promise.all([
+      loadHello(),
+      loadStates(),
+      loadCities(),
+    ]);
+  };
+
   
   // --- Derived data  ---
 
@@ -219,6 +228,11 @@ export default function App() {
         This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}
         <code>/state/read</code>, <code>/cities</code>.
       </p>
+      <div style={{ marginBottom: "18px" }}>
+        <button className="btn" onClick={refreshAll} style={{ backgroundColor: "#06b6d4" }}>
+          🔄 Refresh All Data
+        </button>
+      </div>
 
       <Card title="System Health">
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>

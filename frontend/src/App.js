@@ -54,6 +54,12 @@ export default function App() {
 
   const [globalError, setGlobalError] = useState(null);
 
+  // Tabs
+  const [activeTab, setActiveTab] = useState("explorer");
+
+  // State search (left panel)
+  const [stateQuery, setStateQuery] = useState("");
+
   const citiesPath = useMemo(() => {
     const params = new URLSearchParams();
     if (stateCode.trim()) params.set("state_code", stateCode.trim());
@@ -65,27 +71,6 @@ export default function App() {
     
     return `/cities?${params.toString()}`;
   }, [stateCode, limit]);
-
-  // --- Derived data for UI ---
-  const statesArray = useMemo(() => {
-    const raw = statesResp?.["States"];
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    return Object.values(raw);
-  }, [statesResp]);
-
-  const statesPreview = useMemo(() => statesArray.slice(0, 24), [statesArray]);
-
-  // const citiesArray = useMemo(() => {
-  //   if (!cities) return [];
-  //   if (Array.isArray(cities)) return cities;
-  //   return cities.cities ?? cities.results ?? [];
-  // }, [cities]);
-
-  const recordCount =
-    statesResp?.["Number of Records"] ??
-    statesResp?.["Number of records"] ??
-    statesArray.length;
 
   const loadHello = async () => {
     setGlobalError(null);
@@ -133,12 +118,53 @@ export default function App() {
     loadHello();
   }, []);
 
-  const safeCities = Array.isArray(cities)
-  ? cities
-  : (cities?.cities ?? cities?.results ?? []);
+  
+  // --- Derived data  ---
+
+  // 1) normalize states into an array
+  const statesArray = useMemo(() => {
+    const raw = statesResp?.["States"];
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    return Object.values(raw);
+  }, [statesResp]);
+
+  // 2) search/filter states
+  const filteredStates = useMemo(() => {
+    const q = stateQuery.trim().toLowerCase();
+    if (!q) return statesArray;
+    return statesArray.filter((s) => {
+      const name = (s.name ?? "").toLowerCase();
+      const code = (s.code ?? "").toLowerCase();
+      return name.includes(q) || code.includes(q);
+    });
+  }, [statesArray, stateQuery]);
+
+  // 3) selected state object (for title)
+  const selectedState = useMemo(() => {
+    const code = stateCode.trim().toUpperCase();
+    return statesArray.find((s) => (s.code ?? "").toUpperCase() === code) ?? null;
+  }, [statesArray, stateCode]);
+
+  // 4) record count (safe fallback)
+  const recordCount =
+    statesResp?.["Number of Records"] ??
+    statesResp?.["Number of records"] ??
+    statesArray.length;
+
+  // 5) preview slice for the grid
+  const statesPreview = useMemo(() => filteredStates.slice(0, 24), [filteredStates]);
+
+  // 6) normalize cities into an array
+  const safeCities = useMemo(() => {
+    if (!cities) return [];
+    if (Array.isArray(cities)) return cities;
+    return cities.cities ?? cities.results ?? [];
+  }, [cities]);
 
   const citiesCount = safeCities.length;
- 
+
+  
   return (
     <div className="app-shell">
       {globalError && (
@@ -173,7 +199,7 @@ export default function App() {
             </p>
 
             {statesArray.length === 0 ? (
-              <p className="empty">No states found. (Have you loaded data into MongoDB?)</p>
+              <p className="empty">No states found.</p>
             ) : (
               <div className="grid">
                 {statesPreview.map((s, idx) => (

@@ -52,10 +52,15 @@ export default function App() {
   const [healthStatus, setHealthStatus] = useState(null);
   const [healthErr, setHealthErr] = useState(null);
 
+  // Endpoint 5: /endpoints (API documentation)
+  const [endpoints, setEndpoints] = useState(null);
+  const [endpointsErr, setEndpointsErr] = useState(null);
+
   const [loadingHello, setLoadingHello] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingHealth, setLoadingHealth] = useState(false);
+  const [loadingEndpoints, setLoadingEndpoints] = useState(false);
 
   const [globalError, setGlobalError] = useState(null);
 
@@ -133,9 +138,25 @@ export default function App() {
     }
   };
 
+  const loadEndpoints = async () => {
+    setGlobalError(null);
+    setLoadingEndpoints(true);
+    setEndpointsErr(null);
+    try {
+      const data = await fetchJson("/endpoints");
+      setEndpoints(data);
+    } catch (e) {
+      setEndpointsErr(e.message);
+      setGlobalError("Error while fetching endpoints.");
+    } finally {
+    setLoadingEndpoints(false);
+    }
+  };
+
   useEffect(() => {
     loadHello();
     loadHealth();
+    loadEndpoints();
   }, []);
 
   
@@ -304,6 +325,25 @@ export default function App() {
 
         {cities && !Array.isArray(cities) && <JsonBox value={cities} />}
       </Card>
-    </div>
-  );
-}
+
+      <Card title="API Documentation">
+        <button className="btn" onClick={loadEndpoints} disabled={loadingEndpoints}>
+          {loadingEndpoints ? "Loading..." : "Load Endpoints"}
+        </button>
+        {loadingEndpoints && <p className="path">Loading...</p>}
+        {endpointsErr && <p className="path" style={{ color: "crimson" }}>{endpointsErr}</p>}
+        {endpoints && (
+          <div>
+            <p style={{ marginBottom: "12px" }}>
+              Total endpoints: <b>{endpoints["Available endpoints"]?.length || 0}</b>
+            </p>
+            <ul className="list" style={{ fontSize: "0.9rem" }}>
+              {endpoints["Available endpoints"]?.map((ep, idx) => (
+                <li key={idx} style={{ padding: "6px 0", fontFamily: "monospace", color: "var(--ocean)" }}>
+                  {ep}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </Card>

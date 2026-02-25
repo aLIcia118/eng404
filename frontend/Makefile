@@ -26,12 +26,12 @@ start: install
 # non-interactive tests for CI/grading
 test: install
 	@echo "Running frontend tests..."
-	CI=true $(NPM) test -- --watchAll=false
+	CI=true $(NPM) test -- --watchAll=false --coverage
 
 # CRA doesn't define "lint" in package.json, so run eslint directly
 lint: install
 	@echo "Running frontend lint..."
-	./node_modules/.bin/eslint --ext .js,.jsx src --max-warnings=0
+	npx eslint --ext .js,.jsx src --max-warnings=0
 
 build: install
 	@echo "Building frontend..."

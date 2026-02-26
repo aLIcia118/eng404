@@ -3,7 +3,11 @@
 NPM ?= npm
 DEPS_STAMP := .deps.stamp
 
-.PHONY: FORCE prod all_checks dev_env env start test lint build clean
+.PHONY: FORCE \
+	prod check ci \
+	all_checks all_tests \
+	dev_env env install \
+	start test lint build clean
 
 FORCE:
 
@@ -12,29 +16,34 @@ $(DEPS_STAMP): package.json package-lock.json
 	$(NPM) ci
 	@touch $(DEPS_STAMP)
 
-dev_env: $(DEPS_STAMP)
+install: $(DEPS_STAMP)
+dev_env: install
+env: install
 
-env: $(DEPS_STAMP)
-
-start: $(DEPS_STAMP)
+start: install
 	$(NPM) start
 
 # non-interactive tests for CI/grading
-test: $(DEPS_STAMP)
+test: install
 	@echo "Running frontend tests..."
 	CI=true $(NPM) test -- --watchAll=false
 
 # CRA doesn't define "lint" in package.json, so run eslint directly
-lint: $(DEPS_STAMP)
+lint: install
 	@echo "Running frontend lint..."
 	./node_modules/.bin/eslint --ext .js,.jsx src --max-warnings=0
 
-build: $(DEPS_STAMP)
+build: install
 	@echo "Building frontend..."
 	$(NPM) run build
 
-# Run lint + tests (similar to backend all_tests)
+# Back-end style aliases
+all_tests: test
 all_checks: lint test
+
+# Common CI target name
+check: all_checks
+ci: prod
 
 # Main grading target
 prod: all_checks build

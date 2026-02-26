@@ -265,6 +265,14 @@ export default function App() {
       </Card>
 
       <Card title="2) GET /state/read">
+          <div style={{ margin: "12px 0" }}>
+            <input
+              className="input"
+              placeholder="Search state name or code..."
+              value={stateQuery}
+              onChange={(e) => setStateQuery(e.target.value)}
+            />
+          </div>
         <button className="btn" onClick={loadStates} disabled={loadingStates}>
         {loadingStates ? "Loading..." : "Load"}
         </button>
@@ -281,7 +289,14 @@ export default function App() {
             ) : (
               <div className="grid">
                 {statesPreview.map((s, idx) => (
-                  <div className="tile" key={s.code ?? s._id ?? idx}>
+                  <div
+                    className="tile"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      setStateCode(s.code);
+                      loadCities();
+                    }}
+                  >
                     <div className="tile-title">{s.name ?? "Unknown State"}</div>
                     <div className="tile-meta">{s.code ?? ""}</div>
                   </div>

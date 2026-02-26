@@ -50,13 +50,6 @@ semester focuses on frontend integration, performance, testing, and security.
 
 ## Goals
 
-### Progress and Goals (This Assignment)
-
-**Goal**
-- Clearly document completed work and remaining semester goals.
-
----
-
 ### Load Script
 
 **Goal**

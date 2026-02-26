@@ -1,8 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
 import "./App.css";
-import { useApi } from "./useAPI"; 
-
-const { request } = useApi();
 
 async function fetchJson(path) {
   const res = await fetch(path);
@@ -51,27 +48,11 @@ export default function App() {
   const [cities, setCities] = useState(null);
   const [citiesErr, setCitiesErr] = useState(null);
 
-  // Endpoint 4: /health/db (MongoDB status)
-  const [healthStatus, setHealthStatus] = useState(null);
-  const [healthErr, setHealthErr] = useState(null);
-
-  // Endpoint 5: /endpoints (API documentation)
-  const [endpoints, setEndpoints] = useState(null);
-  const [endpointsErr, setEndpointsErr] = useState(null);
-
   const [loadingHello, setLoadingHello] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
-  const [loadingHealth, setLoadingHealth] = useState(false);
-  const [loadingEndpoints, setLoadingEndpoints] = useState(false);
 
   const [globalError, setGlobalError] = useState(null);
-
-  // Tabs
-  const [activeTab, setActiveTab] = useState("explorer");
-
-  // State search (left panel)
-  const [stateQuery, setStateQuery] = useState("");
 
   const citiesPath = useMemo(() => {
     const params = new URLSearchParams();
@@ -80,8 +61,6 @@ export default function App() {
     if (Number.isFinite(n) && n > 0) {
       params.set("limit", String(n));
     }
-
-    
     return `/cities?${params.toString()}`;
   }, [stateCode, limit]);
 
@@ -90,12 +69,12 @@ export default function App() {
     setLoadingHello(true);
     setHelloErr(null);
     try {
-      setHello(await request("/hello"));
+      setHello(await fetchJson("/hello"));
     } catch (e) {
       setHelloErr(e.message);
       setGlobalError("Error when fetching data.");
     } finally {
-      setLoadingHello(false);
+    setLoadingHello(false);
     }
   };
 
@@ -127,97 +106,22 @@ export default function App() {
     }
   };
 
-  const loadHealth = async () => {
-    setGlobalError(null);
-    setLoadingHealth(true);
-    setHealthErr(null);
-    try {
-      setHealthStatus(await fetchJson("/health/db"));
-    } catch (e) {
-      setHealthErr(e.message);
-      setGlobalError("Error while fetching health status.");
-    } finally {
-    setLoadingHealth(false);
-    }
-  };
-
-  const loadEndpoints = async () => {
-    setGlobalError(null);
-    setLoadingEndpoints(true);
-    setEndpointsErr(null);
-    try {
-      const data = await fetchJson("/endpoints");
-      setEndpoints(data);
-    } catch (e) {
-      setEndpointsErr(e.message);
-      setGlobalError("Error while fetching endpoints.");
-    } finally {
-    setLoadingEndpoints(false);
-    }
-  };
-
   useEffect(() => {
     loadHello();
-    loadHealth();
-    loadEndpoints();
   }, []);
 
-  const refreshAll = async () => {
-    setGlobalError(null);
-    await Promise.all([
-      loadHello(),
-      loadStates(),
-      loadCities(),
-    ]);
-  };
+  useEffect(() => {
+  loadCities();
+  }, [citiesPath]);
 
-  
-  // --- Derived data  ---
+  useEffect(() => {
+  if (stateCode.trim()) loadCities();
+  }, [citiesPath]);
 
-  // 1) normalize states into an array
-  const statesArray = useMemo(() => {
-    const raw = statesResp?.["States"];
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    return Object.values(raw);
-  }, [statesResp]);
+  const citiesArray = Array.isArray(cities)
+  ? cities
+  : cities?.cities;
 
-  // 2) search/filter states
-  const filteredStates = useMemo(() => {
-    const q = stateQuery.trim().toLowerCase();
-    if (!q) return statesArray;
-    return statesArray.filter((s) => {
-      const name = (s.name ?? "").toLowerCase();
-      const code = (s.code ?? "").toLowerCase();
-      return name.includes(q) || code.includes(q);
-    });
-  }, [statesArray, stateQuery]);
-
-  // 3) selected state object (for title)
-  const selectedState = useMemo(() => {
-    const code = stateCode.trim().toUpperCase();
-    return statesArray.find((s) => (s.code ?? "").toUpperCase() === code) ?? null;
-  }, [statesArray, stateCode]);
-
-  // 4) record count (safe fallback)
-  const recordCount =
-    statesResp?.["Number of Records"] ??
-    statesResp?.["Number of records"] ??
-    statesArray.length;
-
-  // 5) preview slice for the grid
-  const statesPreview = useMemo(() => filteredStates.slice(0, 24), [filteredStates]);
-
-  // 6) normalize cities into an array
-  const safeCities = useMemo(() => {
-    if (!cities) return [];
-    if (Array.isArray(cities)) return cities;
-    return cities.cities ?? cities.results ?? [];
-  }, [cities]);
-
-  const citiesCount = safeCities.length;
-
-  
   return (
     <div className="app-shell">
       {globalError && (
@@ -226,36 +130,11 @@ export default function App() {
         </div>
       )}
       <div className="badge">ENG404 Frontend Demo</div>
-      {/* <h1 className="app-title">ENG404 CRA Frontend</h1> */}
+      <h1 className="app-title">ENG404 CRA Frontend</h1>
       <p className="app-subtitle">
         This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}
         <code>/state/read</code>, <code>/cities</code>.
       </p>
-      <div style={{ marginBottom: "18px" }}>
-        <button className="btn" onClick={refreshAll} style={{ backgroundColor: "#06b6d4" }}>
-          🔄 Refresh All Data
-        </button>
-      </div>
-
-      <Card title="System Health">
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <span style={{
-            display: "inline-block",
-            width: "12px",
-            height: "12px",
-            borderRadius: "50%",
-            backgroundColor: healthStatus?.ok ? "#22c55e" : "#ef4444"
-          }}></span>
-          <span style={{ fontWeight: "600" }}>
-            {healthStatus?.ok ? "MongoDB Connected" : "MongoDB Disconnected"}
-          </span>
-          <button className="btn" onClick={loadHealth} disabled={loadingHealth} style={{ marginLeft: "auto", padding: "4px 8px", fontSize: "0.85rem" }}>
-            {loadingHealth ? "Checking..." : "Refresh"}
-          </button>
-        </div>
-        {healthErr && <p className="path" style={{ color: "crimson", marginTop: "8px" }}>{healthErr}</p>}
-        {healthStatus && <p className="path" style={{ marginTop: "8px" }}>{healthStatus.message}</p>}
-      </Card>
 
       <Card title="1) GET /hello">
         <button className="btn" onClick={loadHello} disabled={loadingHello}>
@@ -265,14 +144,6 @@ export default function App() {
       </Card>
 
       <Card title="2) GET /state/read">
-          <div style={{ margin: "12px 0" }}>
-            <input
-              className="input"
-              placeholder="Search state name or code..."
-              value={stateQuery}
-              onChange={(e) => setStateQuery(e.target.value)}
-            />
-          </div>
         <button className="btn" onClick={loadStates} disabled={loadingStates}>
         {loadingStates ? "Loading..." : "Load"}
         </button>
@@ -281,28 +152,18 @@ export default function App() {
         {statesResp && (
           <>
             <p>
-              Records: <b>{recordCount}</b>
+              Records: <b>{statesResp["Number of Records"]}</b>
             </p>
 
-            {statesArray.length === 0 ? (
-              <p className="empty">No states found.</p>
-            ) : (
-              <div className="grid">
-                {statesPreview.map((s, idx) => (
-                  <div
-                    className="tile"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      setStateCode(s.code);
-                      loadCities();
-                    }}
-                  >
-                    <div className="tile-title">{s.name ?? "Unknown State"}</div>
-                    <div className="tile-meta">{s.code ?? ""}</div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* 只预览一部分，避免太长 */}
+            <JsonBox
+              value={{
+                "States Preview":
+                  Array.isArray(statesResp["States"])
+                    ? statesResp["States"].slice(0, 10)
+                    : Object.fromEntries(Object.entries(statesResp["States"] || {}).slice(0, 10)),
+              }}
+            />
           </>
         )}
       </Card>
@@ -327,6 +188,17 @@ export default function App() {
           <button className="btn" onClick={loadCities} disabled={loadingCities}>
             {loadingCities ? "Loading..." : "Load"}
           </button>
+
+          <button
+            className="btn"
+            onClick={() => {
+              setCities(null);
+              setCitiesErr(null);
+            }}
+          >
+            Clear
+          </button>
+            
           {loadingCities && <p className="path">Loading...</p>}
           <span className="path">
             Path: <code>{citiesPath}</code>
@@ -335,20 +207,15 @@ export default function App() {
 
         {citiesErr && <p className="path" style={{ color: "crimson" }}>{citiesErr}</p>}
 
-        {cities && !citiesErr && safeCities.length === 0 && (
-          <p className="empty">No cities found for that query.</p>
-        )}
-
-        {safeCities.length > 0 && (
+        {Array.isArray(citiesArray) && (
           <>
             <p>
-              Results: <b>{citiesCount}</b>
+              Results: <b>{citiesArray.length}</b>
             </p>
             <ul className="list">
-              {safeCities.map((c, idx) => (
-                <li className="city-item">
-                  <div className="city-name">{c.name ?? "Unknown City"}</div>
-                  <div className="city-meta">State: {c.state_code ?? stateCode.toUpperCase()}</div>
+              {citiesArray.map((c, idx) => (
+                <li key={idx}>
+                  <b>{c.name}</b> ({c.state_code})
                 </li>
               ))}
             </ul>
@@ -357,28 +224,6 @@ export default function App() {
 
         {cities && !Array.isArray(cities) && <JsonBox value={cities} />}
       </Card>
-
-      <Card title="API Documentation">
-        <button className="btn" onClick={loadEndpoints} disabled={loadingEndpoints}>
-          {loadingEndpoints ? "Loading..." : "Load Endpoints"}
-        </button>
-        {loadingEndpoints && <p className="path">Loading...</p>}
-        {endpointsErr && <p className="path" style={{ color: "crimson" }}>{endpointsErr}</p>}
-        {endpoints && (
-          <div>
-            <p style={{ marginBottom: "12px" }}>
-              Total endpoints: <b>{endpoints["Available endpoints"]?.length || 0}</b>
-            </p>
-            <ul className="list" style={{ fontSize: "0.9rem" }}>
-              {endpoints["Available endpoints"]?.map((ep, idx) => (
-                <li key={idx} style={{ padding: "6px 0", fontFamily: "monospace", color: "var(--ocean)" }}>
-                  {ep}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </Card>
-     </div>
+    </div>
   );
 }

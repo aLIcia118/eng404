@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useEffect } from "react";
 import "./App.css";
+import { useApi } from "./useAPI"; 
+
+const { request } = useApi();
 
 async function fetchJson(path) {
   const res = await fetch(path);
@@ -87,12 +90,12 @@ export default function App() {
     setLoadingHello(true);
     setHelloErr(null);
     try {
-      setHello(await fetchJson("/hello"));
+      setHello(await request("/hello"));
     } catch (e) {
       setHelloErr(e.message);
       setGlobalError("Error when fetching data.");
     } finally {
-    setLoadingHello(false);
+      setLoadingHello(false);
     }
   };
 
@@ -328,9 +331,9 @@ export default function App() {
             </p>
             <ul className="list">
               {safeCities.map((c, idx) => (
-                <li className="listItem" key={c._id ?? `${c.name}-${idx}`}>
-                  <span className="cityName">{c.name ?? "Unknown City"}</span>
-                  <span className="pill">{c.state_code ?? stateCode.toUpperCase()}</span>
+                <li className="city-item">
+                  <div className="city-name">{c.name ?? "Unknown City"}</div>
+                  <div className="city-meta">State: {c.state_code ?? stateCode.toUpperCase()}</div>
                 </li>
               ))}
             </ul>
@@ -361,3 +364,6 @@ export default function App() {
           </div>
         )}
       </Card>
+     </div>
+  );
+}

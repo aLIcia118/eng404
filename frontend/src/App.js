@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import "./App.css";
 
 async function fetchJson(path) {
@@ -64,7 +64,7 @@ export default function App() {
     return `/cities?${params.toString()}`;
   }, [stateCode, limit]);
 
-  const loadHello = async () => {
+  const loadHello = useCallback(async () => {
     setGlobalError(null);
     setLoadingHello(true);
     setHelloErr(null);
@@ -76,9 +76,9 @@ export default function App() {
     } finally {
     setLoadingHello(false);
     }
-  };
+  }, []);
 
-  const loadStates = async () => {
+  const loadStates = useCallback(async () => {
     setGlobalError(null);
     setLoadingStates(true);
     setStatesErr(null);
@@ -90,9 +90,9 @@ export default function App() {
     } finally {
     setLoadingStates(false);
     }
-  };
+  }, []);
 
-  const loadCities = async () => {
+  const loadCities = useCallback(async () => {
     setGlobalError(null);
     setLoadingCities(true);
     setCitiesErr(null);
@@ -104,19 +104,15 @@ export default function App() {
     } finally {
     setLoadingCities(false);
     }
-  };
+  }, [citiesPath]);
 
   useEffect(() => {
     loadHello();
-  }, []);
+  }, [loadHello]);
 
   useEffect(() => {
   loadCities();
-  }, [citiesPath]);
-
-  useEffect(() => {
-  if (stateCode.trim()) loadCities();
-  }, [citiesPath]);
+  }, [loadCities]);
 
   const citiesArray = Array.isArray(cities)
   ? cities

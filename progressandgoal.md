@@ -50,7 +50,7 @@ semester focuses on frontend integration, performance, testing, and security.
 
 ## Goals
 
-### Load Script
+### Load Script (DONE!)
 
 **Goal**
 - Add a script that generates load against the API.
@@ -61,7 +61,7 @@ semester focuses on frontend integration, performance, testing, and security.
 
 ---
 
-### Create React Frontend to Your API Server
+### Create React Frontend to Your API Server (DONE!)
 
 **Goal**
 - Build a React frontend that connects to the backend API.
@@ -72,7 +72,29 @@ semester focuses on frontend integration, performance, testing, and security.
 
 ---
 
-### Use Environment Variables to Re-direct Frontend
+### Create at Least One Developer Endpoint (DONE!)
+
+**Goal**
+- Add an endpoint intended for developers.
+
+**How**
+- Create an endpoint for system status, metadata, or debugging.
+
+---
+
+### Design Frontend 
+
+**Goal**
+- Make the frontend clean, readable, and easy to use for testing the API.
+
+**How**
+- Use consistent layout and spacing (cards/sections for each endpoint).
+- Render API outputs clearly with formatted JSON and previews for large responses.
+- Add clear buttons, labels, and loading/error states.
+
+---
+
+### Use Environment Variables to Re-direct Frontend 
 
 **Goal**
 - Configure the frontend to switch between local and cloud APIs.
@@ -83,7 +105,7 @@ semester focuses on frontend integration, performance, testing, and security.
 
 ---
 
-### Implement React Testing
+### Implement React Testing 
 
 **Goal**
 - Add automated tests for the React frontend.
@@ -91,18 +113,6 @@ semester focuses on frontend integration, performance, testing, and security.
 **How**
 - Write basic component and integration tests.
 - Ensure tests can run automatically.
-
----
-
-### Create at Least One Developer Endpoint
-
-**Goal**
-- Add an endpoint intended for developers.
-
-**How**
-- Create an endpoint for system status, metadata, or debugging.
-
----
 
 ### Security
 

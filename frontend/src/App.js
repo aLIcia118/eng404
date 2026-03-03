@@ -1,8 +1,11 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import "./App.css";
 
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 async function fetchJson(path) {
-  const res = await fetch(path);
+  const url = `${API_URL}${path}`;
+  const res = await fetch(url);
   const text = await res.text();
   let data;
   try {

@@ -56,6 +56,9 @@ export default function App() {
   const [limit, setLimit] = useState("10");
   const [cities, setCities] = useState(null);
   const [citiesErr, setCitiesErr] = useState(null);
+  const [cityQuery, setCityQuery] = useState("");
+  const [sortDir, setSortDir] = useState("asc"); 
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const [loadingHello, setLoadingHello] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
@@ -107,6 +110,7 @@ export default function App() {
     setCitiesErr(null);
     try {
       setCities(await fetchJson(citiesPath));
+      setVisibleCount(10);
     } catch (e) {
       setCitiesErr(e.message);
       setGlobalError("Error while fetching data.");
@@ -126,6 +130,31 @@ export default function App() {
   const citiesArray = Array.isArray(cities)
   ? cities
   : cities?.cities;
+
+  const filteredCities = useMemo(() => {
+    const arr = Array.isArray(citiesArray) ? citiesArray : [];
+    const q = cityQuery.trim().toLowerCase();
+
+    // search filter
+    let out = q
+      ? arr.filter((c) => String(c.name || "").toLowerCase().includes(q))
+      : arr;
+
+    // sort
+    out = [...out].sort((a, b) => {
+      const an = String(a.name || "");
+      const bn = String(b.name || "");
+      return sortDir === "asc" ? an.localeCompare(bn) : bn.localeCompare(an);
+    });
+
+    return out;
+  }, [citiesArray, cityQuery, sortDir]);
+
+  const visibleCities = useMemo(() => {
+    return filteredCities.slice(0, visibleCount);
+  }, [filteredCities, visibleCount]);
+
+
 
   return (
     <div className="app-shell">

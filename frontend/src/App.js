@@ -216,6 +216,32 @@ export default function App() {
               onChange={(e) => setLimit(e.target.value)}
             />
           </label>
+
+          <label>
+            search:&nbsp;
+            <input
+              className="input"
+              value={cityQuery}
+              onChange={(e) => {
+                setCityQuery(e.target.value);
+                setVisibleCount(10); // reset when searching
+              }}
+              placeholder="e.g. York"
+            />
+          </label>
+
+          <label>
+            sort:&nbsp;
+            <select
+              className="input"
+              value={sortDir}
+              onChange={(e) => setSortDir(e.target.value)}
+            >
+              <option value="asc">A → Z</option>
+              <option value="desc">Z → A</option>
+            </select>
+          </label>
+
           <button className="btn" onClick={loadCities} disabled={loadingCities}>
             {loadingCities ? "Loading..." : "Load"}
           </button>
@@ -225,6 +251,9 @@ export default function App() {
             onClick={() => {
               setCities(null);
               setCitiesErr(null);
+              setCityQuery("");
+              setSortDir("asc");
+              setVisibleCount(10);
             }}
           >
             Clear
@@ -241,15 +270,25 @@ export default function App() {
         {Array.isArray(citiesArray) && (
           <>
             <p>
-              Results: <b>{citiesArray.length}</b>
+              Results: <b>{filteredCities.length}</b> (showing {visibleCities.length})
             </p>
+
             <ul className="list">
-              {citiesArray.map((c, idx) => (
+              {visibleCities.map((c, idx) => (
                 <li key={idx}>
                   <b>{c.name}</b> ({c.state_code})
                 </li>
               ))}
             </ul>
+
+            {visibleCities.length < filteredCities.length && (
+              <button
+                className="btn"
+                onClick={() => setVisibleCount((n) => n + 10)}
+              >
+                Load more
+              </button>
+            )}
           </>
         )}
 

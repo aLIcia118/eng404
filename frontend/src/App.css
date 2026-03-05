@@ -85,6 +85,37 @@
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
+.meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 4px;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: var(--ink-700);
+  font-weight: 600;
+}
+
+.chip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(15, 118, 110, 0.25);
+  font-size: 0.85rem;
+  color: var(--ink-900);
+}
+
 .card {
   background: var(--paper);
   border: 1px solid var(--outline);

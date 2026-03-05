@@ -209,6 +209,21 @@ export default function App() {
         </div>
       </header>
 
+      <div className="meta-bar">
+        <span className="meta-chip">
+          <span className="chip-label">/hello</span>
+          <span>{formatTimestamp(lastTouched.hello)}</span>
+        </span>
+        <span className="meta-chip">
+          <span className="chip-label">/state/read</span>
+          <span>{formatTimestamp(lastTouched.states)}</span>
+        </span>
+        <span className="meta-chip">
+          <span className="chip-label">/cities</span>
+          <span>{formatTimestamp(lastTouched.cities)}</span>
+        </span>
+      </div>
+
       <div className="layout-grid">
         <GeoMap apiBase={API_URL} />
         <HelloHealthCard apiBase={API_URL} />

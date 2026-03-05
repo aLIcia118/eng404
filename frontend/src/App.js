@@ -141,9 +141,9 @@ export default function App() {
         <code>/state/read</code>, <code>/cities</code>.
       </p>
 
-      <GeoMap />
-
-      <HelloHealthCard />
+      <GeoMap apiBase={API_URL} />
+        
+      <HelloHealthCard apiBase={API_URL} />
 
       <Card title="2) GET /state/read">
         <button className="btn" onClick={loadStates} disabled={loadingStates}>
@@ -157,7 +157,7 @@ export default function App() {
               Records: <b>{statesResp["Number of Records"]}</b>
             </p>
 
-            {/* 只预览一部分，避免太长 */}
+            {/* Preview only to keep output short */}
             <JsonBox
               value={{
                 "States Preview":

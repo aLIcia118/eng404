@@ -25,10 +25,16 @@ async function fetchJson(path) {
   return data;
 }
 
-function Card({ title, children }) {
+function Card({ title, subtitle, meta, children }) {
   return (
     <div className="card">
-      <h2 className="card-title">{title}</h2>
+      <div className="card-header">
+        <div>
+          {subtitle && <p className="card-eyebrow">{subtitle}</p>}
+          <h2 className="card-title">{title}</h2>
+        </div>
+        {meta && <span className="card-meta">{meta}</span>}
+      </div>
       {children}
     </div>
   );
@@ -43,6 +49,8 @@ function JsonBox({ value }) {
 }
 
 export default function App() {
+  const [lastTouched, setLastTouched] = useState({ hello: null, states: null, cities: null });
+
   // Endpoint 1: /hello
   const [hello, setHello] = useState(null);
   const [helloErr, setHelloErr] = useState(null);
@@ -57,7 +65,7 @@ export default function App() {
   const [cities, setCities] = useState(null);
   const [citiesErr, setCitiesErr] = useState(null);
   const [cityQuery, setCityQuery] = useState("");
-  const [sortDir, setSortDir] = useState("asc"); 
+  const [sortDir, setSortDir] = useState("asc");
   const [visibleCount, setVisibleCount] = useState(10);
 
   const [loadingHello, setLoadingHello] = useState(false);
@@ -76,12 +84,23 @@ export default function App() {
     return `/cities?${params.toString()}`;
   }, [stateCode, limit]);
 
+  const formatTimestamp = useCallback((date) => {
+    if (!date) return "Not fetched yet";
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  }, []);
+
   const loadHello = useCallback(async () => {
     setGlobalError(null);
     setLoadingHello(true);
     setHelloErr(null);
     try {
       setHello(await fetchJson("/hello"));
+      setLastTouched((prev) => ({ ...prev, hello: new Date() }));
     } catch (e) {
       setHelloErr(e.message);
       setGlobalError("Error when fetching data.");
@@ -96,6 +115,7 @@ export default function App() {
     setStatesErr(null);
     try {
       setStatesResp(await fetchJson("/state/read"));
+      setLastTouched((prev) => ({ ...prev, states: new Date() }));
     } catch (e) {
       setStatesErr(e.message);
       setGlobalError("Error while fetching data.");
@@ -111,6 +131,7 @@ export default function App() {
     try {
       setCities(await fetchJson(citiesPath));
       setVisibleCount(10);
+      setLastTouched((prev) => ({ ...prev, cities: new Date() }));
     } catch (e) {
       setCitiesErr(e.message);
       setGlobalError("Error while fetching data.");
@@ -132,29 +153,29 @@ export default function App() {
   : cities?.cities;
 
   const filteredCities = useMemo(() => {
-    const arr = Array.isArray(citiesArray) ? citiesArray : [];
+    if (!Array.isArray(citiesArray)) return [];
     const q = cityQuery.trim().toLowerCase();
+    return citiesArray.filter((c) =>
+      q ? String(c.name || "").toLowerCase().includes(q) : true
+    );
+  }, [citiesArray, cityQuery]);
 
-    // search filter
-    let out = q
-      ? arr.filter((c) => String(c.name || "").toLowerCase().includes(q))
-      : arr;
-
-    // sort
-    out = [...out].sort((a, b) => {
-      const an = String(a.name || "");
-      const bn = String(b.name || "");
-      return sortDir === "asc" ? an.localeCompare(bn) : bn.localeCompare(an);
+  const sortedCities = useMemo(() => {
+    const arr = [...filteredCities];
+    arr.sort((a, b) => {
+      const aName = String(a.name || "");
+      const bName = String(b.name || "");
+      return sortDir === "desc"
+        ? bName.localeCompare(aName)
+        : aName.localeCompare(bName);
     });
+    return arr;
+  }, [filteredCities, sortDir]);
 
-    return out;
-  }, [citiesArray, cityQuery, sortDir]);
-
-  const visibleCities = useMemo(() => {
-    return filteredCities.slice(0, visibleCount);
-  }, [filteredCities, visibleCount]);
-
-
+  const visibleCities = useMemo(
+    () => sortedCities.slice(0, visibleCount),
+    [sortedCities, visibleCount]
+  );
 
   return (
     <div className="app-shell">
@@ -163,50 +184,83 @@ export default function App() {
           {globalError}
         </div>
       )}
-      <div className="badge">ENG404 Frontend Demo</div>
-      <h1 className="app-title">ENG404 CRA Frontend</h1>
-      <p className="app-subtitle">
-        This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}
-        <code>/state/read</code>, <code>/cities</code>.
-      </p>
 
-      <GeoMap apiBase={API_URL} />
-        
-      <HelloHealthCard apiBase={API_URL} />
+      <header className="hero">
+        <div>
+          <div className="hero-badge">ENG404 Frontend Demo</div>
+          <h1 className="hero-title">API observability at a glance</h1>
+          <p className="hero-copy">
+            Explore three backend endpoints, map city data, and validate health without leaving this page. Every
+            interaction explains what it fetches and when it last ran.
+          </p>
+          <div className="hero-actions">
+            <span className="pill">Base URL: {API_URL}</span>
+            <span className="pill pill-quiet">3 endpoints wired</span>
+            <span className="pill pill-quiet">Leaflet map preview</span>
+          </div>
+        </div>
+        <div className="hero-card">
+          <p className="muted">How to read this page</p>
+          <ul className="hero-list">
+            <li><b>Map</b> auto-loads top NY cities and clusters markers.</li>
+            <li><b>Health</b> measures latency and shows raw JSON when needed.</li>
+            <li><b>States & cities</b> cards reveal payloads with concise previews.</li>
+          </ul>
+        </div>
+      </header>
 
-      <Card title="2) GET /state/read">
-        <button className="btn" onClick={loadStates} disabled={loadingStates}>
-        {loadingStates ? "Loading..." : "Load"}
-        </button>
-        {loadingStates && <p className="path">Loading...</p>}
-        {statesErr && <p className="path" style={{ color: "crimson" }}>{statesErr}</p>}
+      <div className="layout-grid">
+        <GeoMap apiBase={API_URL} />
+        <HelloHealthCard apiBase={API_URL} />
+      </div>
+
+      <Card
+        title="2) GET /state/read"
+        subtitle="Full state catalog"
+        meta={formatTimestamp(lastTouched.states)}
+      >
+        <div className="card-toolbar">
+          <div className="endpoint-chip">GET /state/read</div>
+          <button className="btn" onClick={loadStates} disabled={loadingStates}>
+            {loadingStates ? "Loading..." : "Refresh"}
+          </button>
+        </div>
+
+        {statesErr && <p className="path error-text">{statesErr}</p>}
+
+        {loadingStates && <p className="path">Contacting backend...</p>}
+
         {statesResp && (
           <>
-            <p>
-              Records: <b>{statesResp["Number of Records"]}</b>
-            </p>
+            <p className="meta">Records available: <b>{statesResp["Number of Records"]}</b></p>
 
-            {/* Preview only to keep output short */}
-            <JsonBox
-              value={{
-                "States Preview":
-                  Array.isArray(statesResp["States"])
-                    ? statesResp["States"].slice(0, 10)
-                    : Object.fromEntries(Object.entries(statesResp["States"] || {}).slice(0, 10)),
-              }}
-            />
+            <div className="card-subsection">
+              <p className="muted">Preview (first 10 to keep things tidy)</p>
+              <JsonBox
+                value={{
+                  "States Preview":
+                    Array.isArray(statesResp["States"])
+                      ? statesResp["States"].slice(0, 10)
+                      : Object.fromEntries(Object.entries(statesResp["States"] || {}).slice(0, 10)),
+                }}
+              />
+            </div>
           </>
         )}
       </Card>
 
-      <Card title="3) GET /cities (query params)">
+      <Card
+        title="3) GET /cities (query params)"
+        subtitle="Filter cities by state and limit"
+        meta={formatTimestamp(lastTouched.cities)}
+      >
         <div className="controls">
-          <label>
-            state_code:&nbsp;
+          <label className="control">
+            <span className="label">state_code</span>
             <input className="input" value={stateCode} onChange={(e) => setStateCode(e.target.value)} placeholder="NY" />
           </label>
-          <label>
-            limit:&nbsp;
+          <label className="control">
+            <span className="label">limit</span>
             <input
               className="input"
               type="number"
@@ -216,22 +270,21 @@ export default function App() {
               onChange={(e) => setLimit(e.target.value)}
             />
           </label>
-
-          <label>
-            search:&nbsp;
+          <label className="control">
+            <span className="label">search</span>
             <input
               className="input"
               value={cityQuery}
               onChange={(e) => {
                 setCityQuery(e.target.value);
-                setVisibleCount(10); // reset when searching
+                setVisibleCount(10);
               }}
               placeholder="e.g. York"
             />
           </label>
 
-          <label>
-            sort:&nbsp;
+          <label className="control">
+            <span className="label">sort</span>
             <select
               className="input"
               value={sortDir}
@@ -242,41 +295,45 @@ export default function App() {
             </select>
           </label>
 
-          <button className="btn" onClick={loadCities} disabled={loadingCities}>
-            {loadingCities ? "Loading..." : "Load"}
-          </button>
-
-          <button
-            className="btn"
-            onClick={() => {
-              setCities(null);
-              setCitiesErr(null);
-              setCityQuery("");
-              setSortDir("asc");
-              setVisibleCount(10);
-            }}
-          >
-            Clear
-          </button>
-            
-          {loadingCities && <p className="path">Loading...</p>}
-          <span className="path">
-            Path: <code>{citiesPath}</code>
-          </span>
+          <div className="control-group">
+            <button className="btn" onClick={loadCities} disabled={loadingCities}>
+              {loadingCities ? "Loading..." : "Run query"}
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                setCities(null);
+                setCitiesErr(null);
+                setCityQuery("");
+                setSortDir("asc");
+                setVisibleCount(10);
+              }}
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
-        {citiesErr && <p className="path" style={{ color: "crimson" }}>{citiesErr}</p>}
+        <div className="path-row">
+          <span className="endpoint-chip muted">Path: {citiesPath}</span>
+          <span className="muted">Auto-loads on mount with NY & limit 10.</span>
+        </div>
+
+        {citiesErr && <p className="path error-text">{citiesErr}</p>}
+
+        {loadingCities && <p className="path">Crunching results...</p>}
 
         {Array.isArray(citiesArray) && (
           <>
-            <p>
+            <p className="meta">
               Results: <b>{filteredCities.length}</b> (showing {visibleCities.length})
             </p>
 
             <ul className="list">
               {visibleCities.map((c, idx) => (
-                <li key={idx}>
-                  <b>{c.name}</b> ({c.state_code})
+                <li key={idx} className="city-item">
+                  <div className="city-name">{c.name}</div>
+                  <div className="city-meta">{c.state_code}</div>
                 </li>
               ))}
             </ul>

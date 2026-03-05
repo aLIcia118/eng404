@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useCallback } from "react";
 import "./App.css";
 import "leaflet/dist/leaflet.css";
 import GeoMap from "./GeoMap";
+import HelloHealthCard from "./HelloHealthCard"; 
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -139,12 +140,7 @@ export default function App() {
 
       <GeoMap />
 
-      <Card title="1) GET /hello">
-        <button className="btn" onClick={loadHello} disabled={loadingHello}>
-  {loadingHello ? "Loading..." : "Load"} </button>
-        {helloErr && <p className="path" style={{ color: "crimson" }}>{helloErr}</p>}
-        {hello && <JsonBox value={hello} />}
-      </Card>
+      <HelloHealthCard />
 
       <Card title="2) GET /state/read">
         <button className="btn" onClick={loadStates} disabled={loadingStates}>

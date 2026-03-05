@@ -4,7 +4,10 @@ import "leaflet/dist/leaflet.css";
 import GeoMap from "./GeoMap";
 import HelloHealthCard from "./HelloHealthCard"; 
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  process.env.REACT_APP_API_BASE_URL ||
+  "http://localhost:8000";
 
 async function fetchJson(path) {
   const url = `${API_URL}${path}`;

@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import "./App.css";
+import "leaflet/dist/leaflet.css";
+import GeoMap from "./GeoMap";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -134,6 +136,8 @@ export default function App() {
         This frontend hits and displays data from 3 backend endpoints: <code>/hello</code>,{" "}
         <code>/state/read</code>, <code>/cities</code>.
       </p>
+
+      <GeoMap />
 
       <Card title="1) GET /hello">
         <button className="btn" onClick={loadHello} disabled={loadingHello}>

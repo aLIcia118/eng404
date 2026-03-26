@@ -22,9 +22,10 @@ SAMPLE_STATE = {
 cache = None
 
 
-def needs_cache(fn, *args, **kwargs):
+def needs_cache(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
+        global cache
         if not cache:
             load_cache()
         return fn(*args, **kwargs)

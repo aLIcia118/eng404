@@ -38,7 +38,7 @@ jobs:
         run: python -c "import sys; print(sys.version)"
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install MongoDB in a Docker container.
         uses: supercharge/mongodb-github-action@1.8.0

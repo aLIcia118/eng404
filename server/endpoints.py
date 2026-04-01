@@ -44,6 +44,10 @@ CITY_RESP = 'Cities'
 
 HEALTH_DB_EP = "/health/db"
 
+# HATEOAS dropdown options endpoints
+STATE_OPTIONS_EP = '/state/options'
+CITY_OPTIONS_EP = '/cities/options'
+
 # Swagger / RESTX model describing the JSON body for a city
 city_model = api.model(
     "City",
@@ -265,6 +269,99 @@ class CityDetail(Resource):
         if ok:
             return {}, HTTPStatus.NO_CONTENT
         return {ERROR: "Delete failed"}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+@api.route(STATE_OPTIONS_EP)
+class StateOptions(Resource):
+    """
+    HATEOAS endpoint that returns state options for dropdown menus.
+    Returns list of state objects with code and name.
+    """
+    SAMPLE_STATE_OPTIONS = [
+        {"code": "NY", "name": "New York"},
+        {"code": "CA", "name": "California"},
+        {"code": "TX", "name": "Texas"},
+        {"code": "FL", "name": "Florida"},
+        {"code": "PA", "name": "Pennsylvania"},
+        {"code": "IL", "name": "Illinois"},
+        {"code": "OH", "name": "Ohio"},
+        {"code": "GA", "name": "Georgia"},
+        {"code": "NC", "name": "North Carolina"},
+        {"code": "MI", "name": "Michigan"},
+    ]
+    
+    def get(self):
+        """
+        Return available states for dropdown selection.
+        """
+        try:
+            states_data = sqry.read()
+            # Transform to dropdown format if needed
+            if isinstance(states_data, dict):
+                options = [
+                    {"code": code, "name": state.get("name", code)} 
+                    for code, state in states_data.items()
+                ]
+            else:
+                options = [
+                    {"code": s.get("code", ""), "name": s.get("name", "")} 
+                    for s in states_data
+                ]
+        except (ConnectionError, Exception):
+            options = self.SAMPLE_STATE_OPTIONS
+        
+        if not options:
+            options = self.SAMPLE_STATE_OPTIONS
+        
+        return {"options": options}, HTTPStatus.OK
+
+@api.route(CITY_OPTIONS_EP)
+class CityOptions(Resource):
+    """
+    HATEOAS endpoint that returns city options for dropdown menus.
+    Can filter by state_code query parameter.
+    """
+    SAMPLE_CITY_OPTIONS = [
+        {"id": "NYC001", "name": "New York", "state_code": "NY"},
+        {"id": "NYC002", "name": "Buffalo", "state_code": "NY"},
+        {"id": "NYC003", "name": "Rochester", "state_code": "NY"},
+        {"id": "LAC001", "name": "Los Angeles", "state_code": "CA"},
+        {"id": "LAC002", "name": "San Francisco", "state_code": "CA"},
+        {"id": "LAC003", "name": "San Diego", "state_code": "CA"},
+        {"id": "TXC001", "name": "Houston", "state_code": "TX"},
+        {"id": "TXC002", "name": "Dallas", "state_code": "TX"},
+        {"id": "TXC003", "name": "Austin", "state_code": "TX"},
+    ]
+    
+    def get(self):
+        """
+        Return available cities for dropdown selection.
+        Optional query parameter: state_code (e.g., ?state_code=NY)
+        """
+        state_code = request.args.get("state_code")
+        
+        try:
+            cities_dict = cqry.read()
+            # Transform to dropdown format
+            options = [
+                {"id": city.get("_id", ""), "name": city.get("name", ""), 
+                 "state_code": city.get("state_code", "")}
+                for city in cities_dict.values()
+            ]
+        except (ConnectionError, Exception):
+            options = self.SAMPLE_CITY_OPTIONS
+        
+        if not options:
+            options = self.SAMPLE_CITY_OPTIONS
+        
+        # Filter by state if provided
+        if state_code:
+            code_upper = state_code.upper()
+            options = [
+                c for c in options 
+                if c.get("state_code", "").upper() == code_upper
+            ]
+        
+        return {"options": options}, HTTPStatus.OK
 
 @api.route(HELLO_EP)
 class HelloWorld(Resource):

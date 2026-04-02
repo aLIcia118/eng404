@@ -312,7 +312,24 @@ class StateOptions(Resource):
         if not options:
             options = self.SAMPLE_STATE_OPTIONS
         
-        return {"options": options}, HTTPStatus.OK
+        enriched_options = [
+            {
+                **option,
+                "links": {
+                    "self": f"{STATE_OPTIONS_EP}?code={option['code']}",
+                    "cities": f"{CITY_OPTIONS_EP}?state_code={option['code']}",
+                    "state_detail": f"{STATES_EPS}/{option['code']}",
+                },
+            }
+            for option in options
+        ]
+
+        return {
+            "options": enriched_options,
+            "links": {
+                "self": STATE_OPTIONS_EP,
+            },
+        }, HTTPStatus.OK
 
 @api.route(CITY_OPTIONS_EP)
 class CityOptions(Resource):
@@ -343,8 +360,11 @@ class CityOptions(Resource):
             cities_dict = cqry.read()
             # Transform to dropdown format
             options = [
-                {"id": city.get("_id", ""), "name": city.get("name", ""), 
-                 "state_code": city.get("state_code", "")}
+                {
+                    "id": city.get("id") or city.get("_id", ""),
+                    "name": city.get("name", ""),
+                    "state_code": city.get("state_code", ""),
+                }
                 for city in cities_dict.values()
             ]
         except (ConnectionError, Exception):
@@ -361,7 +381,29 @@ class CityOptions(Resource):
                 if c.get("state_code", "").upper() == code_upper
             ]
         
-        return {"options": options}, HTTPStatus.OK
+        enriched_options = [
+            {
+                **option,
+                "links": {
+                    "self": f"{CITIES_EPS}/{option['id']}",
+                    "collection": CITIES_EPS,
+                    "state_options": f"{STATE_OPTIONS_EP}",
+                },
+            }
+            for option in options
+        ]
+
+        collection_link = CITY_OPTIONS_EP
+        if state_code:
+            collection_link = f"{CITY_OPTIONS_EP}?state_code={state_code.upper()}"
+
+        return {
+            "options": enriched_options,
+            "links": {
+                "self": collection_link,
+                "state_options": STATE_OPTIONS_EP,
+            },
+        }, HTTPStatus.OK
 
 @api.route(HELLO_EP)
 class HelloWorld(Resource):

@@ -79,6 +79,23 @@ class TestCityOptions:
             assert 'id' in option, f"City option missing 'id': {option}"
             assert 'name' in option, f"City option missing 'name': {option}"
             assert 'state_code' in option, f"City option missing 'state_code': {option}"
+
+    def test_city_options_include_hateoas_links(self, client):
+        """Test that city options expose navigable HATEOAS links."""
+        response = client.get('/cities/options')
+        assert response.status_code == HTTPStatus.OK
+        data = response.get_json()
+
+        assert 'links' in data, "Response should contain top-level 'links'"
+        assert data['links']['self'].startswith('/cities/options')
+        assert data['links']['state_options'] == '/state/options'
+
+        if data['options']:
+            option = data['options'][0]
+            assert 'links' in option, f"City option missing 'links': {option}"
+            assert option['links']['self'].startswith('/cities/')
+            assert option['links']['collection'] == '/cities'
+            assert option['links']['state_options'] == '/state/options'
     
     def test_city_options_filters_by_state_code(self, client):
         """Test that state_code query parameter filters cities."""

@@ -5,6 +5,7 @@ The endpoint called `endpoints` will return all available endpoints.
 
 #test: trigger CI run
 from http import HTTPStatus
+from pathlib import Path
 
 from flask import Flask, request
 # from flask_restx import Resource, Api  # , fields  # Namespace
@@ -43,10 +44,23 @@ CITIES_EPS = '/cities'
 CITY_RESP = 'Cities'
 
 HEALTH_DB_EP = "/health/db"
+DEVELOPER_LOGS_EP = "/developer/logs"
 
 # HATEOAS dropdown options endpoints
 STATE_OPTIONS_EP = '/state/options'
 CITY_OPTIONS_EP = '/cities/options'
+
+DEFAULT_LOG_PATHS = (
+    Path("/var/log/emu86.pythonanywhere.com.server.log"),
+    Path("/var/log/emu86.pythonanywhere.com.error.log"),
+    Path("/var/log/emu86.pythonanywhere.com.access.log"),
+)
+
+
+def _tail_lines(log_path: Path, lines: int) -> list[str]:
+    with log_path.open("r", encoding="utf-8", errors="replace") as handle:
+        contents = handle.readlines()
+    return [line.rstrip("\n") for line in contents[-lines:]]
 
 # Swagger / RESTX model describing the JSON body for a city
 city_model = api.model(
@@ -429,6 +443,47 @@ class HealthDB(Resource):
             return {"ok": True, "message": "Mongo reachable"}
         except Exception as e:
             return {"ok": False, "error": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+@api.route(DEVELOPER_LOGS_EP)
+class DeveloperLogs(Resource):
+    """
+    Developer-facing endpoint for inspecting recent application logs.
+    """
+
+    def get(self):
+        requested_path = request.args.get("path")
+        limit_arg = request.args.get("lines", "50")
+
+        try:
+            line_limit = max(1, min(int(limit_arg), 200))
+        except ValueError:
+            return {ERROR: "lines must be an integer between 1 and 200"}, HTTPStatus.BAD_REQUEST
+
+        if requested_path:
+            log_path = Path(requested_path)
+        else:
+            available_paths = [path for path in DEFAULT_LOG_PATHS if path.exists()]
+            if not available_paths:
+                return {
+                    MESSAGE: "No configured log files were found",
+                    "candidates": [str(path) for path in DEFAULT_LOG_PATHS],
+                }, HTTPStatus.NOT_FOUND
+            log_path = available_paths[0]
+
+        if not log_path.exists() or not log_path.is_file():
+            return {ERROR: f"Log file not found: {log_path}"}, HTTPStatus.NOT_FOUND
+
+        try:
+            log_lines = _tail_lines(log_path, line_limit)
+        except OSError as exc:
+            return {ERROR: f"Unable to read log file: {exc}"}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+        return {
+            "path": str(log_path),
+            "lines_requested": line_limit,
+            "lines": log_lines,
+        }, HTTPStatus.OK
 
 @api.route(ENDPOINT_EP)
 class Endpoints(Resource):

@@ -3,13 +3,11 @@ This is the file containing all of the endpoints for our flask app.
 The endpoint called `endpoints` will return all available endpoints.
 """
 
-#test: trigger CI run
 from http import HTTPStatus
 from pathlib import Path
 
 from flask import Flask, request
-# from flask_restx import Resource, Api  # , fields  # Namespace
-from flask_restx import Resource, Api, fields  # Namespace
+from flask_restx import Resource, Api, fields
 from flask_cors import CORS
 
 from data.db_connect import connect_db

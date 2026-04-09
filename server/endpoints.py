@@ -145,7 +145,7 @@ class States(Resource):
             if not states_data or num_recs == 0:
                 states_data = SAMPLE_STATES
                 num_recs = len(states_data)
-        except (ConnectionError, Exception) as e:
+        except (ConnectionError, Exception):
             # Use sample data if database connection fails
             states_data = SAMPLE_STATES
             num_recs = len(states_data)

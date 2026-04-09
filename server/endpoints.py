@@ -48,6 +48,22 @@ DEVELOPER_LOGS_EP = "/developer/logs"
 STATE_OPTIONS_EP = '/state/options'
 CITY_OPTIONS_EP = '/cities/options'
 
+# Sample cities data for demo purposes when MongoDB is unavailable
+SAMPLE_CITIES_LIST = [
+    {"_id": "NYC001", "name": "New York", "state_code": "NY", "population": 8335897},
+    {"_id": "NYC002", "name": "Buffalo", "state_code": "NY", "population": 250514},
+    {"_id": "NYC003", "name": "Rochester", "state_code": "NY", "population": 211328},
+    {"_id": "LAC001", "name": "Los Angeles", "state_code": "CA", "population": 3979576},
+    {"_id": "LAC002", "name": "San Francisco", "state_code": "CA", "population": 873965},
+    {"_id": "LAC003", "name": "San Diego", "state_code": "CA", "population": 1423851},
+    {"_id": "TXC001", "name": "Houston", "state_code": "TX", "population": 2320268},
+    {"_id": "TXC002", "name": "Dallas", "state_code": "TX", "population": 1343573},
+    {"_id": "TXC003", "name": "Austin", "state_code": "TX", "population": 978908},
+]
+
+# Sample cities as dict for faster lookups
+SAMPLE_CITIES_DICT = {city["_id"]: city for city in SAMPLE_CITIES_LIST}
+
 DEFAULT_LOG_PATHS = (
     Path("/var/log/emu86.pythonanywhere.com.server.log"),
     Path("/var/log/emu86.pythonanywhere.com.error.log"),
@@ -142,22 +158,8 @@ class States(Resource):
 @api.route(f'{CITIES_EPS}/{READ}')
 class Cities(Resource):
     """
-    The purpose of the HelloWorld class is to have a simple test to see if the
-    app is working at all.
+    Return all cities and a count of records.
     """
-    # Sample cities for demo purposes
-    SAMPLE_CITIES = [
-        {"_id": "NYC001", "name": "New York", "state_code": "NY", "population": 8335897},
-        {"_id": "NYC002", "name": "Buffalo", "state_code": "NY", "population": 250514},
-        {"_id": "NYC003", "name": "Rochester", "state_code": "NY", "population": 211328},
-        {"_id": "LAC001", "name": "Los Angeles", "state_code": "CA", "population": 3979576},
-        {"_id": "LAC002", "name": "San Francisco", "state_code": "CA", "population": 873965},
-        {"_id": "LAC003", "name": "San Diego", "state_code": "CA", "population": 1423851},
-        {"_id": "TXC001", "name": "Houston", "state_code": "TX", "population": 2320268},
-        {"_id": "TXC002", "name": "Dallas", "state_code": "TX", "population": 1343573},
-        {"_id": "TXC003", "name": "Austin", "state_code": "TX", "population": 978908},
-    ]
-    
     def get(self):
         """
         Return all cities and a count of records.
@@ -166,12 +168,12 @@ class Cities(Resource):
             cities = cqry.read()
             num_recs = len(cities)
         except (ConnectionError, Exception):
-            cities = self.SAMPLE_CITIES
+            cities = SAMPLE_CITIES_LIST
             num_recs = len(cities)
         
         # Use sample data if database returned empty
         if not cities or num_recs == 0:
-            cities = self.SAMPLE_CITIES
+            cities = SAMPLE_CITIES_LIST
             num_recs = len(cities)
         
         return {
@@ -185,19 +187,6 @@ class CitiesList(Resource):
     List all cities or create a new city.
     """
     
-    # Sample cities for demo purposes
-    SAMPLE_CITIES = {
-        "NYC001": {"_id": "NYC001", "name": "New York", "state_code": "NY", "population": 8335897},
-        "NYC002": {"_id": "NYC002", "name": "Buffalo", "state_code": "NY", "population": 250514},
-        "NYC003": {"_id": "NYC003", "name": "Rochester", "state_code": "NY", "population": 211328},
-        "LAC001": {"_id": "LAC001", "name": "Los Angeles", "state_code": "CA", "population": 3979576},
-        "LAC002": {"_id": "LAC002", "name": "San Francisco", "state_code": "CA", "population": 873965},
-        "LAC003": {"_id": "LAC003", "name": "San Diego", "state_code": "CA", "population": 1423851},
-        "TXC001": {"_id": "TXC001", "name": "Houston", "state_code": "TX", "population": 2320268},
-        "TXC002": {"_id": "TXC002", "name": "Dallas", "state_code": "TX", "population": 1343573},
-        "TXC003": {"_id": "TXC003", "name": "Austin", "state_code": "TX", "population": 978908},
-    }
-
     def get(self):
         """
         Return a list of all cities.
@@ -207,11 +196,11 @@ class CitiesList(Resource):
         try:
             cities_dict = cqry.read()
         except (ConnectionError, Exception):
-            cities_dict = self.SAMPLE_CITIES
+            cities_dict = SAMPLE_CITIES_DICT
         
         # Use sample data if database returned empty
         if not cities_dict:
-            cities_dict = self.SAMPLE_CITIES
+            cities_dict = SAMPLE_CITIES_DICT
 
         cities_list = list(cities_dict.values())
         if state_code:

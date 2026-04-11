@@ -5,12 +5,12 @@ Tests the data loader functionality with mocked database connections.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+# Add the project root to path so this test works from the repo root too.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from load_geo_data import (
     GeoDataValidator,
@@ -18,6 +18,7 @@ from load_geo_data import (
     SAMPLE_STATES,
     SAMPLE_CITIES,
 )
+
 
 
 class TestGeoDataValidator:

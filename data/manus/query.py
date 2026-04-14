@@ -63,7 +63,6 @@ def is_valid_action(action: str) -> bool:
 
 
 def assign_ref(manu: dict, ref: str, extra=None) -> str:
-    print(extra)
     manu[flds.REFEREES].append(ref)
     return IN_REF_REV
 

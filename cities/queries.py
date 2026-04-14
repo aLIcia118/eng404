@@ -208,7 +208,6 @@ def read_one(city_id: str) -> dict[str, Any] | None:
 
 def main() -> None:
     cities = read()
-    print(cities)
 
 
 if __name__ == "__main__":

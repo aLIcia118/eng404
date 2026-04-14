@@ -67,7 +67,6 @@ def create(flds: dict) -> str:
         new_id = res
 
     new_id = str(new_id)
-    print(f'{new_id=}')
     load_cache()
     return new_id
 

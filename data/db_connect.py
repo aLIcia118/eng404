@@ -160,7 +160,6 @@ def create(collection: str, doc: dict, db: str = SE_DB):
     """
     Insert a single doc into a collection.
     """
-    print(f"{doc=}")
     if _use_inmem or client is None:
         rec = deepcopy(doc)
         rec.setdefault(MONGO_ID, str(uuid4()))

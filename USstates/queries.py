@@ -1,5 +1,6 @@
 from functools import wraps
 from time import time
+from typing import Any
 
 import data.db_connect as dbc
 
@@ -64,7 +65,7 @@ def count() -> int:
 
 
 @needs_cache
-def create(flds: dict) -> str:
+def create(flds: dict[str, Any]) -> str:
     if not isinstance(flds, dict):
         raise ValueError(f'Bad type for {type(flds)=}')
     code = flds.get(CODE)
@@ -101,12 +102,12 @@ def delete(code: str, cntry_code: str) -> bool:
 
 
 @needs_cache
-def read() -> list[dict]:
+def read() -> list[dict[str, Any]]:
     out = []
     for state in cache.values():
         s = dict(state)
-        if "_id" in s:
-            s["_id"] = str(s["_id"])
+        if dbc.MONGO_ID in s:
+            s[dbc.MONGO_ID] = str(s[dbc.MONGO_ID])
         out.append(s)
     return out
 

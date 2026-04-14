@@ -1,4 +1,5 @@
 from functools import wraps
+from time import time
 
 import data.db_connect as dbc
 
@@ -20,6 +21,26 @@ SAMPLE_STATE = {
 }
 
 cache = None
+# Cache timestamp for tracking freshness
+cache_timestamp: float = 0.0
+
+
+def clear_cache() -> None:
+    """Clear the in-memory state cache and timestamp."""
+    global cache, cache_timestamp
+    cache = None
+    cache_timestamp = 0.0
+
+
+def is_cache_fresh(max_age_seconds: float = 3600.0) -> bool:
+    """Check if cache is fresh (within max_age_seconds old)."""
+    return cache is not None and (time() - cache_timestamp) < max_age_seconds
+
+
+def _refresh_cache_timestamp() -> None:
+    """Update cache timestamp to current time."""
+    global cache_timestamp
+    cache_timestamp = time()
 
 
 def needs_cache(fn):
@@ -97,6 +118,7 @@ def load_cache():
     states = dbc.read(STATE_COLLECTION)
     for state in states:
         cache[(state[CODE], state[COUNTRY_CODE])] = state
+    _refresh_cache_timestamp()
 
 
 def main():

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from time import time
 from typing import Any, Dict
 from uuid import uuid4
 
@@ -19,6 +20,26 @@ SAMPLE_CITY = {
 
 # in-memory cache: key = internal city id, value = city record
 city_cache: dict[str, dict[str, Any]] = {}
+# Cache timestamp for tracking freshness
+cache_timestamp: float = 0.0
+
+
+def clear_cache() -> None:
+    """Clear the in-memory city cache."""
+    global city_cache, cache_timestamp
+    city_cache.clear()
+    cache_timestamp = 0.0
+
+
+def is_cache_fresh(max_age_seconds: float = 3600.0) -> bool:
+    """Check if cache is fresh (within max_age_seconds old)."""
+    return (time() - cache_timestamp) < max_age_seconds
+
+
+def _refresh_cache_timestamp() -> None:
+    """Update cache timestamp to current time."""
+    global cache_timestamp
+    cache_timestamp = time()
 
 
 def _can_connect() -> bool:
@@ -182,6 +203,7 @@ def read() -> dict[str, dict[str, Any]]:
         raise ConnectionError("cannot connect")
 
     if city_cache:
+        _refresh_cache_timestamp()
         return city_cache
 
     recs = dbc.read(CITY_COLLECTION)
@@ -190,6 +212,7 @@ def read() -> dict[str, dict[str, Any]]:
         cid = rec.get(ID) or _next_id()
         rec[ID] = cid
         city_cache[cid] = rec
+    _refresh_cache_timestamp()
     return city_cache
 
 def read_one(city_id: str) -> dict[str, Any] | None:

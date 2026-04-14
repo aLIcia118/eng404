@@ -3,6 +3,7 @@ This is the file containing all of the endpoints for our flask app.
 The endpoint called `endpoints` will return all available endpoints.
 """
 
+import logging
 from http import HTTPStatus
 from pathlib import Path
 
@@ -20,6 +21,10 @@ from data.samples import (
 
 import cities.queries as cqry
 import USstates.queries as sqry
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
@@ -80,7 +85,11 @@ class StateDetail(Resource):
         try:
             states_data = sqry.read()
         except ConnectionError as e:
+            logger.warning(f"Database connection failed for states: {e}")
             return {ERROR: str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
+        except Exception as e:
+            logger.error(f"Unexpected error reading states: {e}")
+            return {ERROR: f"Server error: {str(e)}"}, HTTPStatus.INTERNAL_SERVER_ERROR
 
         code = state_code.upper()
         rec = None
@@ -116,10 +125,17 @@ class States(Resource):
             num_recs = len(states_data)
             # Use sample data if database is empty
             if not states_data or num_recs == 0:
+                logger.info("Database returned empty states, using sample data")
                 states_data = SAMPLE_STATES
                 num_recs = len(states_data)
-        except (ConnectionError, Exception):
+        except ConnectionError as e:
+            logger.warning(f"Database connection failed, using sample states: {e}")
             # Use sample data if database connection fails
+            states_data = SAMPLE_STATES
+            num_recs = len(states_data)
+        except Exception as e:
+            logger.error(f"Unexpected error reading states: {e}")
+            # Use sample data on unexpected errors
             states_data = SAMPLE_STATES
             num_recs = len(states_data)
 
@@ -168,7 +184,11 @@ class CitiesList(Resource):
         limit_str = request.args.get("limit")
         try:
             cities_dict = cqry.read()
-        except (ConnectionError, Exception):
+        except ConnectionError as e:
+            logger.warning(f"Database connection failed, using sample cities: {e}")
+            cities_dict = SAMPLE_CITIES_DICT
+        except Exception as e:
+            logger.error(f"Unexpected error reading cities: {e}")
             cities_dict = SAMPLE_CITIES_DICT
         
         # Use sample data if database returned empty
@@ -280,7 +300,11 @@ class StateOptions(Resource):
                     {"code": s.get("code", ""), "name": s.get("name", "")} 
                     for s in states_data
                 ]
-        except (ConnectionError, Exception):
+        except ConnectionError as e:
+            logger.warning(f"Database connection failed for state options: {e}")
+            options = self.SAMPLE_STATE_OPTIONS
+        except Exception as e:
+            logger.error(f"Unexpected error reading state options: {e}")
             options = self.SAMPLE_STATE_OPTIONS
         
         if not options:
@@ -341,7 +365,11 @@ class CityOptions(Resource):
                 }
                 for city in cities_dict.values()
             ]
-        except (ConnectionError, Exception):
+        except ConnectionError as e:
+            logger.warning(f"Database connection failed for city options: {e}")
+            options = self.SAMPLE_CITY_OPTIONS
+        except Exception as e:
+            logger.error(f"Unexpected error reading city options: {e}")
             options = self.SAMPLE_CITY_OPTIONS
         
         if not options:

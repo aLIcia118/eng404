@@ -2,6 +2,7 @@
 All interaction with MongoDB should be through this file!
 We may be required to use a new database at any point.
 """
+import logging
 import os
 from copy import deepcopy
 from functools import wraps
@@ -10,6 +11,9 @@ from uuid import uuid4
 import certifi # Use certifi's CA bundle for TLS to MongoDB Atlas
 
 import pymongo as pm
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 LOCAL = "0"
 CLOUD = "1"
@@ -62,7 +66,7 @@ def _build_client_from_env() -> pm.MongoClient:
     """
     uri = os.getenv("MONGODB_URI")
     if uri:
-        print("Connecting to Mongo via MONGODB_URI (cloud).")
+        logger.info("Connecting to Mongo via MONGODB_URI (cloud).")
         return pm.MongoClient(
             uri,
             serverSelectionTimeoutMS=5000,
@@ -77,7 +81,7 @@ def _build_client_from_env() -> pm.MongoClient:
             msg = "CLOUD_MONGO=1 requires MONGO_USER, MONGO_PASSWD, and MONGO_HOST."
             raise ValueError(msg)
         uri = f"mongodb+srv://{user}:{pwd}@{host}/?retryWrites=true&w=majority"
-        print("Connecting to Mongo via CLOUD_MONGO pieces (cloud).")
+        logger.info("Connecting to Mongo via CLOUD_MONGO pieces (cloud).")
         return pm.MongoClient(
             uri,
             serverSelectionTimeoutMS=5000,
@@ -85,7 +89,7 @@ def _build_client_from_env() -> pm.MongoClient:
             tlsCAFile=certifi.where(),   
         )
 
-    print("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
+    logger.info("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
     return pm.MongoClient(
         "mongodb://127.0.0.1:27017",
         serverSelectionTimeoutMS=5000,
@@ -110,8 +114,15 @@ def connect_db() -> Optional[pm.MongoClient]:
         # Validate connection early (raises on failure)
         client.admin.command("ping")
         _use_inmem = False
+        logger.info("Connected to MongoDB successfully")
         return client
-    except Exception:
+    except pm.errors.ServerSelectionTimeoutError as e:
+        logger.warning(f"MongoDB connection timeout, falling back to in-memory mode: {e}")
+        _use_inmem = True
+        client = None
+        return None
+    except Exception as e:
+        logger.warning(f"MongoDB connection failed, falling back to in-memory mode: {e}")
         _use_inmem = True
         client = None
         return None

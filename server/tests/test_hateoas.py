@@ -50,6 +50,20 @@ class TestStateOptions:
         assert 'CA' in state_codes, "Should include CA"
         assert 'TX' in state_codes, "Should include TX"
 
+    def test_state_options_include_hateoas_links(self, client):
+        response = client.get('/state/options')
+        assert response.status_code == HTTPStatus.OK
+        data = response.get_json()
+
+        assert 'links' in data
+        assert data['links']['self'] == '/state/options'
+
+        if data['options']:
+            option = data['options'][0]
+            assert 'links' in option
+            assert option['links']['self'].startswith('/state/options?code=')
+            assert option['links']['cities'].startswith('/cities/options?state_code=')
+            assert option['links']['state_detail'].startswith('/state/')
 
 class TestCityOptions:
     """Test the /cities/options endpoint for city dropdown selection."""

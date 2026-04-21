@@ -19,6 +19,7 @@ LOCAL = "0"
 CLOUD = "1"
 
 SE_DB = "seDB"
+DB_TIMEOUT_MS = 5000
 
 client: Optional[pm.MongoClient] = None
 _use_inmem = False
@@ -69,7 +70,7 @@ def _build_client_from_env() -> pm.MongoClient:
         logger.info("Connecting to Mongo via MONGODB_URI (cloud).")
         return pm.MongoClient(
             uri,
-            serverSelectionTimeoutMS=5000,
+            serverSelectionTimeoutMS=DB_TIMEOUT_MS,
             tlsCAFile=certifi.where(),   
         )
 
@@ -84,7 +85,7 @@ def _build_client_from_env() -> pm.MongoClient:
         logger.info("Connecting to Mongo via CLOUD_MONGO pieces (cloud).")
         return pm.MongoClient(
             uri,
-            serverSelectionTimeoutMS=5000,
+            serverSelectionTimeoutMS=DB_TIMEOUT_MS,
             # Same TLS setup for this cloud connection path
             tlsCAFile=certifi.where(),   
         )
@@ -92,7 +93,7 @@ def _build_client_from_env() -> pm.MongoClient:
     logger.info("Connecting to Mongo locally (mongodb://127.0.0.1:27017).")
     return pm.MongoClient(
         "mongodb://127.0.0.1:27017",
-        serverSelectionTimeoutMS=5000,
+        serverSelectionTimeoutMS=DB_TIMEOUT_MS,
         # Using the same CA bundle is harmless for local dev and keeps
         # behavior consistent across all connection modes.
     )

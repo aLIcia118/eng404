@@ -206,7 +206,6 @@ def delete(collection: str, filt: dict, db: str = SE_DB) -> int:
     Returns:
         The number of documents deleted (0 or 1).
     """
-    print(f"{filt=}")
     if _use_inmem or client is None:
         coll = _inmem_collection(db, collection)
         for idx, rec in enumerate(coll):
@@ -288,5 +287,5 @@ def ensure_indexes() -> None:
         db = db_client[SE_DB]
         db["cities"].create_index("name", unique=False)
     except Exception as exc:
-        print(f"Warning: Could not ensure indexes (MongoDB may not be running): {exc}")
-        print("Indexes will be created when MongoDB becomes available.")
+        logger.warning(f"Could not ensure indexes (MongoDB may not be running): {exc}")
+        logger.info("Indexes will be created when MongoDB becomes available.")

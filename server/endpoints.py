@@ -8,7 +8,7 @@ from http import HTTPStatus
 from pathlib import Path
 
 from flask import Flask, request
-from flask_restx import Resource, Api, fields
+from flask_restx import Resource, Api
 from flask_cors import CORS
 
 from data.db_connect import connect_db
@@ -66,15 +66,6 @@ def _tail_lines(log_path: Path, lines: int) -> list[str]:
     with log_path.open("r", encoding="utf-8", errors="replace") as handle:
         contents = handle.readlines()
     return [line.rstrip("\n") for line in contents[-lines:]]
-
-# Swagger / RESTX model describing the JSON body for a city
-city_model = api.model(
-    "City",
-    {
-        "name": fields.String(required=True, description="City name"),
-        "state_code": fields.String(required=True, description="2-letter state code"),
-    },
-)
 
 @api.route(f"{STATES_EPS}/<string:state_code>")
 class StateDetail(Resource):

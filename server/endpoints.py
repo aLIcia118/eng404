@@ -22,7 +22,7 @@ from data.samples import (
 import cities.queries as cqry
 import USstates.queries as sqry
 
-from security.security import is_allowed, PEOPLE, CREATE
+from security.security import is_allowed, PEOPLE, CREATE, READ
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +36,7 @@ ensure_indexes()
 ERROR = 'Error'
 MESSAGE = 'Message'
 NUM_RECS = 'Number of Records'
-READ = 'read'
+READ_ACTION = 'read'
 
 ENDPOINT_EP = '/endpoints'
 ENDPOINT_RESP = 'Available endpoints'
@@ -58,6 +58,7 @@ STATE_OPTIONS_EP = '/state/options'
 CITY_OPTIONS_EP = '/cities/options'
 
 LOGIN_EP = '/login'
+ADMIN_RAW_JSON_EP = "/admin/raw-json"
 
 DEFAULT_LOG_PATHS = (
     Path("/var/log/emu86.pythonanywhere.com.server.log"),
@@ -127,7 +128,7 @@ class StateDetail(Resource):
         return rec, HTTPStatus.OK
 
 
-@api.route(f"{STATES_EPS}/{READ}")
+@api.route(f"{STATES_EPS}/{READ_ACTION}")
 class States(Resource):
     """
     Endpoint to list all US states.
@@ -163,7 +164,7 @@ class States(Resource):
             NUM_RECS: num_recs,
         }, HTTPStatus.OK
 
-@api.route(f'{CITIES_EPS}/{READ}')
+@api.route(f'{CITIES_EPS}/{READ_ACTION}')
 class Cities(Resource):
     """
     Return all cities and a count of records.
@@ -459,6 +460,8 @@ class DeveloperLogs(Resource):
     """
 
     def get(self):
+        
+
         requested_path = request.args.get("path")
         limit_arg = request.args.get("lines", "50")
 
@@ -490,6 +493,37 @@ class DeveloperLogs(Resource):
             "path": str(log_path),
             "lines_requested": line_limit,
             "lines": log_lines,
+        }, HTTPStatus.OK
+
+@api.route(ADMIN_RAW_JSON_EP)
+class AdminRawJSON(Resource):
+    """
+    Admin-only endpoint for viewing raw system JSON.
+    """
+
+    def get(self):
+        user_email = request.args.get("email")
+        logged_in = request.args.get("logged_in") == "true"
+
+        if not is_allowed(PEOPLE, READ, user_email, logged_in):
+            return {
+                ERROR: "Unauthorized",
+                MESSAGE: "Admin login required to view raw JSON.",
+            }, HTTPStatus.UNAUTHORIZED
+
+        try:
+            states_data = sqry.read()
+        except Exception:
+            states_data = SAMPLE_STATES
+
+        try:
+            cities_data = cqry.read()
+        except Exception:
+            cities_data = SAMPLE_CITIES_DICT
+
+        return {
+            "states": states_data,
+            "cities": cities_data,
         }, HTTPStatus.OK
 
 @api.route(ENDPOINT_EP)

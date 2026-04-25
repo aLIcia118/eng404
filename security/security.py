@@ -70,6 +70,12 @@ temp_recs = {
                 LOGIN: True,
             },
         },
+        READ: {
+            USER_LIST: ['ejc369@nyu.edu', 'admin@eng404.com'],
+            CHECKS: {
+                LOGIN: True,
+            },
+        },
     },
 }
 

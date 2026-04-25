@@ -65,7 +65,7 @@ security_recs = None
 temp_recs = {
     PEOPLE: {
         CREATE: {
-            USER_LIST: ['ejc369@nyu.edu'],
+            USER_LIST: ['admin@eng404.com'],
             CHECKS: {
                 LOGIN: True,
             },
@@ -100,3 +100,25 @@ def read_feature(feature_name: str) -> dict:
         return security_recs[feature_name]
     else:
         return None
+
+@needs_recs
+def is_allowed(feature_name: str, action: str, user_email: str, logged_in: bool) -> bool:
+    feature = read_feature(feature_name)
+
+    if not feature:
+        return False
+
+    if action not in feature:
+        return False
+
+    action_rules = feature[action]
+
+    if user_email not in action_rules.get(USER_LIST, []):
+        return False
+
+    checks = action_rules.get(CHECKS, {})
+
+    if checks.get(LOGIN) and not logged_in:
+        return False
+
+    return True

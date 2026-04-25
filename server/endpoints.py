@@ -22,6 +22,8 @@ from data.samples import (
 import cities.queries as cqry
 import USstates.queries as sqry
 
+from security.security import is_allowed, PEOPLE, CREATE
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,12 +57,38 @@ DEVELOPER_LOGS_EP = "/developer/logs"
 STATE_OPTIONS_EP = '/state/options'
 CITY_OPTIONS_EP = '/cities/options'
 
+LOGIN_EP = '/login'
+
 DEFAULT_LOG_PATHS = (
     Path("/var/log/emu86.pythonanywhere.com.server.log"),
     Path("/var/log/emu86.pythonanywhere.com.error.log"),
     Path("/var/log/emu86.pythonanywhere.com.access.log"),
 )
 
+
+@api.route('/login')
+class Login(Resource):
+    def post(self):
+        data = request.get_json(silent=True) or {}
+
+        user_email = data.get('email')
+        password = data.get('password')
+
+        # simple login check
+        logged_in = password == 'eng404'
+
+        allowed = is_allowed(PEOPLE, CREATE, user_email, logged_in)
+
+        if not allowed:
+            return {
+                "Error": "Unauthorized",
+                "Message": "Invalid login or permission denied."
+            }, HTTPStatus.UNAUTHORIZED
+
+        return {
+            "Message": "Login successful",
+            "email": user_email
+        }, HTTPStatus.OK
 
 def _tail_lines(log_path: Path, lines: int) -> list[str]:
     with log_path.open("r", encoding="utf-8", errors="replace") as handle:

@@ -1,7 +1,5 @@
 from functools import wraps
 
-# import data.db_connect as dbc
-
 """
 Our record format to meet our requirements (see security.md) will be:
 

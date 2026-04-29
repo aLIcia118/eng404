@@ -161,23 +161,19 @@ class GeoDataLoader:
         ) is not None
 
     def log(self, message: str, level: str = "info") -> None:
-        """Log a message using logging instead of print."""
+        """Print a message when verbose output is enabled."""
         if not self.verbose:
             return
 
-        if level == "error":
-            logging.error(message)
-        elif level == "warning":
-            logging.warning(message)
-        else:
-            logging.info(message)
+        print(message)
 
-    def load_states(self, states: List[Dict[str, Any]]) -> None:
+    def load_states(self, states: List[Dict[str, Any]], check_existing: bool = True) -> None:
         """
         Load states into the database.
 
         Args:
             states: List of state dictionaries
+            check_existing: If True, skip states already present in the database
         """
         self.log(f"\n{'='*60}")
         self.log(f"Loading {len(states)} states...")
@@ -194,7 +190,7 @@ class GeoDataLoader:
                 continue
 
             # Check if already exists
-            if self.state_exists(state):
+            if check_existing and self.state_exists(state):
                 self.log(f"[SKIPPED] State #{idx} already exists: {state['code']}", level="warning")
                 continue
 
@@ -213,12 +209,13 @@ class GeoDataLoader:
                 self.log(f"[ERROR] State #{idx} ({state.get('name')}): {e}", level="error")
                 self.failed_states += 1
 
-    def load_cities(self, cities: List[Dict[str, Any]]) -> None:
+    def load_cities(self, cities: List[Dict[str, Any]], check_existing: bool = True) -> None:
         """
         Load cities into the database.
 
         Args:
             cities: List of city dictionaries
+            check_existing: If True, skip cities already present in the database
         """
         self.log(f"\n{'='*60}")
         self.log(f"Loading {len(cities)} cities...")
@@ -235,7 +232,7 @@ class GeoDataLoader:
                 continue
 
             # Check if already exists
-            if self.city_exists(city):
+            if check_existing and self.city_exists(city):
                 self.log(f"[SKIPPED] City #{idx} already exists: {city['name']}", level="warning")
                 continue
 
@@ -293,8 +290,8 @@ class GeoDataLoader:
 
     def load_sample_data(self) -> None:
         """Load the sample states and cities."""
-        self.load_states(SAMPLE_STATES)
-        self.load_cities(SAMPLE_CITIES)
+        self.load_states(SAMPLE_STATES, check_existing=False)
+        self.load_cities(SAMPLE_CITIES, check_existing=False)
 
 
 def main():

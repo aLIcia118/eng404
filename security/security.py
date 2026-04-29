@@ -1,4 +1,5 @@
 from functools import wraps
+from typing import Optional
 
 """
 Our record format to meet our requirements (see security.md) will be:
@@ -106,14 +107,14 @@ def read_feature(feature_name: str) -> dict:
         return None
 
 
-def _normalize_email(email: str | None) -> str:
+def _normalize_email(email: Optional[str]) -> str:
     if not email:
         return ''
     return email.strip().lower()
 
 
 @needs_recs
-def is_allowed(feature_name: str, action: str, user_email: str | None, logged_in: bool) -> bool:
+def is_allowed(feature_name: str, action: str, user_email: Optional[str], logged_in: bool) -> bool:
     feature = read_feature(feature_name)
 
     if not feature:

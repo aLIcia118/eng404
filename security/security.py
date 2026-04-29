@@ -105,8 +105,15 @@ def read_feature(feature_name: str) -> dict:
     else:
         return None
 
+
+def _normalize_email(email: str | None) -> str:
+    if not email:
+        return ''
+    return email.strip().lower()
+
+
 @needs_recs
-def is_allowed(feature_name: str, action: str, user_email: str, logged_in: bool) -> bool:
+def is_allowed(feature_name: str, action: str, user_email: str | None, logged_in: bool) -> bool:
     feature = read_feature(feature_name)
 
     if not feature:
@@ -116,8 +123,17 @@ def is_allowed(feature_name: str, action: str, user_email: str, logged_in: bool)
         return False
 
     action_rules = feature[action]
+    normalized_user_email = _normalize_email(user_email)
 
-    if user_email not in action_rules.get(USER_LIST, []):
+    if not normalized_user_email:
+        return False
+
+    normalized_user_list = {
+        _normalize_email(allowed_email)
+        for allowed_email in action_rules.get(USER_LIST, [])
+    }
+
+    if normalized_user_email not in normalized_user_list:
         return False
 
     checks = action_rules.get(CHECKS, {})

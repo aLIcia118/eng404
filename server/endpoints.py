@@ -22,7 +22,7 @@ from data.samples import (
 import cities.queries as cqry
 import USstates.queries as sqry
 
-from security.security import is_allowed, PEOPLE, CREATE, READ
+from security.security import is_allowed, PEOPLE, CREATE, READ, _normalize_email
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -502,7 +502,7 @@ class AdminRawJSON(Resource):
     """
 
     def get(self):
-        user_email = request.args.get("email")
+        user_email = _normalize_email(request.args.get("email"))
         logged_in = request.args.get("logged_in") == "true"
 
         if not is_allowed(PEOPLE, READ, user_email, logged_in):

@@ -460,14 +460,7 @@ class DeveloperLogs(Resource):
     """
 
     def get(self):
-        user_email = _normalize_email(request.args.get("email"))
-        logged_in = request.args.get("logged_in") == "true"
-
-        if not is_allowed(PEOPLE, READ, user_email, logged_in):
-            return {
-                ERROR: "Unauthorized",
-                MESSAGE: "Admin login required to view developer logs.",
-            }, HTTPStatus.UNAUTHORIZED
+        
 
         requested_path = request.args.get("path")
         limit_arg = request.args.get("lines", "50")

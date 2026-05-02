@@ -460,8 +460,6 @@ class DeveloperLogs(Resource):
     """
 
     def get(self):
-        
-
         requested_path = request.args.get("path")
         limit_arg = request.args.get("lines", "50")
 

@@ -14,3 +14,7 @@ def test_is_not_valid_id():
 
 def test_is_not_valid_id_bad_type():
     assert not dbc.is_valid_id(17)
+
+def test_is_valid_id_at_min_length_boundary():
+    boundary_id = "a" * dbc.MIN_ID_LEN
+    assert dbc.is_valid_id(boundary_id)

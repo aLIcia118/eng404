@@ -52,3 +52,6 @@ def test_is_allowed_denies_none_or_empty_email():
     assert sec.is_allowed(sec.PEOPLE, sec.READ, None, True) is False
     assert sec.is_allowed(sec.PEOPLE, sec.READ, "", True) is False
     assert sec.is_allowed(sec.PEOPLE, sec.READ, "   ", True) is False
+
+def test_read_feature_is_case_sensitive():
+    assert sec.read_feature("PEOPLE") is None

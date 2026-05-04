@@ -44,3 +44,15 @@ def test_developer_logs_returns_candidates_when_default_logs_missing():
     data = resp.get_json()
     assert ep.MESSAGE in data
     assert "candidates" in data
+
+def test_developer_logs_filters_lines_by_contains(tmp_path):
+    log_file = tmp_path / "app.log"
+    log_file.write_text("INFO ready\nERROR failed\nINFO done\n", encoding="utf-8")
+
+    resp = TEST_CLIENT.get(f"{ep.DEVELOPER_LOGS_EP}?path={log_file}&lines=10&contains=error")
+    assert resp.status_code == OK
+
+    data = resp.get_json()
+    assert data["contains"] == "error"
+    assert data["lines"] == ["ERROR failed"]
+
